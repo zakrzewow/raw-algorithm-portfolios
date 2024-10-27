@@ -1,0 +1,1 @@
+{"name": null, "hyperparameters": [{"type": "uniform_int", "name": "patching_a", "lower": 1, "upper": 5, "default_value": 2, "log": false, "meta": null}, {"type": "uniform_int", "name": "patching_c", "lower": 1, "upper": 5, "default_value": 2, "log": false, "meta": null}], "conditions": [], "forbiddens": [], "python_module_version": "1.2.0", "format_version": 0.4}
