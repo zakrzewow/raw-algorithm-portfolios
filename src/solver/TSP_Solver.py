@@ -1,0 +1,54 @@
+import os
+import subprocess
+from typing import Tuple
+
+from ConfigSpace import Configuration
+
+from src.instance import TSP_Instance
+from src.solver import Solver
+
+
+class TSP_Solver(Solver):
+    TOTAL_TIME_LIMIT = 10.0
+
+    def __init__(self, config: Configuration):
+        super().__init__(config)
+
+    def solve(self, instance: TSP_Instance) -> Tuple[float, float]:
+        config_filepath = self._to_config_file(instance.filepath, instance.optimum)
+        result = subprocess.run(
+            ["LKH-2.0.10\LKH.exe", config_filepath],
+            capture_output=True,
+            text=True,
+            stdin=subprocess.DEVNULL,
+        )
+        time = self._parse_result(result)
+        cost = time if time < self.TOTAL_TIME_LIMIT else time * 10
+        self.remove_config_file(config_filepath)
+        return cost, time
+
+    def _to_config_file(self, problem_filepath: str, optimum: float) -> str:
+        config_filepath = f"config_{os.getpid()}.par"
+        with open(config_filepath, "w") as f:
+            f.write(f"PROBLEM_FILE = {problem_filepath}\n")
+            f.write(f"OPTIMUM = {optimum}\n")
+            f.write(f"TRACE_LEVEL = 0\n")
+            f.write(f"TOTAL_TIME_LIMIT = {self.TOTAL_TIME_LIMIT}\n")
+            f.write(f"STOP_AT_OPTIMUM = YES\n")
+            f.write(f"RUNS = 10\n")
+            for k, v in self.config.items():
+                f.write(f"{k} = {v}\n")
+        return config_filepath
+
+    def _parse_result(self, result: subprocess.CompletedProcess) -> Tuple[float, float]:
+        time = None
+        for line in result.stdout.splitlines():
+            if "Time.total" in line:
+                time = float(line.split()[-2])
+                break
+        if time is None:
+            raise Exception("Time not found")
+        return min(time, self.TOTAL_TIME_LIMIT)
+
+    def remove_config_file(self, config_filepath: str):
+        os.remove(config_filepath)
