@@ -5,8 +5,8 @@ from typing import Tuple
 
 from ConfigSpace import Configuration
 
+from src.constant import LKH_PATH, TEMP_DIR
 from src.instance import TSP_Instance
-from src.path import LKH_PATH, TEMP_DIR
 from src.solver import Solver
 
 
@@ -49,7 +49,7 @@ class TSP_Solver(Solver):
                 time = float(line.split()[-2])
                 break
         if time is None:
-            raise Exception("Time not found")
+            raise Exception("Time.total not found")
         return min(time, self.TOTAL_TIME_LIMIT)
 
     def remove_config_file(self, config_filepath: Path):

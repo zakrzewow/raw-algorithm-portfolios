@@ -14,7 +14,3 @@ class Solver(ABC):
     @abstractmethod
     def solve(self, instance: Instance) -> Tuple[float, float]:
         pass
-
-    @property
-    def _pid(self) -> int:
-        return os.getpid()

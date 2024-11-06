@@ -2,12 +2,11 @@ import concurrent.futures
 from typing import List, Tuple, Type
 
 import numpy as np
-from ConfigSpace import ConfigurationSpace
+from ConfigSpace import Configuration, ConfigurationSpace
 
+from src.constant import MAX_WORKERS
 from src.instance import Instance
 from src.solver import Solver
-
-MAX_WORKERS = 4
 
 
 def _solve_instance(solver: Solver, instance: Instance) -> Tuple[float, float]:
@@ -45,3 +44,9 @@ class Portfolio:
             total_times.append(time)
         executor.shutdown()
         return np.mean(total_costs), sum(total_times)
+
+    def update_config(self, config: Configuration):
+        for k, v in config.items():
+            idx, key = k.split("__")
+            idx = int(idx)
+            self.solvers[idx].config[key] = v
