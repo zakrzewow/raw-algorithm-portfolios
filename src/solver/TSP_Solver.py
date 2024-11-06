@@ -1,10 +1,12 @@
 import os
 import subprocess
+from pathlib import Path
 from typing import Tuple
 
 from ConfigSpace import Configuration
 
 from src.instance import TSP_Instance
+from src.path import LKH_PATH, TEMP_DIR
 from src.solver import Solver
 
 
@@ -17,7 +19,7 @@ class TSP_Solver(Solver):
     def solve(self, instance: TSP_Instance) -> Tuple[float, float]:
         config_filepath = self._to_config_file(instance.filepath, instance.optimum)
         result = subprocess.run(
-            ["LKH-2.0.10\LKH.exe", config_filepath],
+            [LKH_PATH, config_filepath],
             capture_output=True,
             text=True,
             stdin=subprocess.DEVNULL,
@@ -27,8 +29,8 @@ class TSP_Solver(Solver):
         self.remove_config_file(config_filepath)
         return cost, time
 
-    def _to_config_file(self, problem_filepath: str, optimum: float) -> str:
-        config_filepath = f"config_{os.getpid()}.par"
+    def _to_config_file(self, problem_filepath: str, optimum: float) -> Path:
+        config_filepath = TEMP_DIR / f"config_{os.getpid()}.par"
         with open(config_filepath, "w") as f:
             f.write(f"PROBLEM_FILE = {problem_filepath}\n")
             f.write(f"OPTIMUM = {optimum}\n")
@@ -50,5 +52,5 @@ class TSP_Solver(Solver):
             raise Exception("Time not found")
         return min(time, self.TOTAL_TIME_LIMIT)
 
-    def remove_config_file(self, config_filepath: str):
-        os.remove(config_filepath)
+    def remove_config_file(self, config_filepath: Path):
+        config_filepath.unlink()

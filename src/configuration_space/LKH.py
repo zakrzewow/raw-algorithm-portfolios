@@ -15,12 +15,12 @@ CONFIGURATION_SPACE = ConfigurationSpace(
         ),
         Categorical(
             name="BACKTRACKING",
-            choices=["YES", "NO"],
+            items=["YES", "NO"],
             default="NO",
         ),
         Categorical(
             name="CANDIDATE_SET_TYPE",
-            choices=["ALPHA", "DELAUNAY", "NEAREST-NEIGHBOR", "QUADRANT"],
+            items=["ALPHA", "DELAUNAY", "NEAREST-NEIGHBOR", "QUADRANT"],
             default="ALPHA",
         ),
         Integer(
@@ -28,20 +28,20 @@ CONFIGURATION_SPACE = ConfigurationSpace(
             bounds=(0, 10),
             default=0,
         ),
-        # Categorical(name="EXTRA_CANDIDATE_SET_TYPE", choices=["NEAREST-NEIGHBOR", "QUADRANT"], default="QUADRANT"),
+        # Categorical(name="EXTRA_CANDIDATE_SET_TYPE", items=["NEAREST-NEIGHBOR", "QUADRANT"], default="QUADRANT",),
         Categorical(
             name="EXTRA_CANDIDATE_SET_TYPE",
-            choices=["QUADRANT"],
+            items=["QUADRANT"],
             default="QUADRANT",
         ),
         Categorical(
             name="GAIN23",
-            choices=["YES", "NO"],
+            items=["YES", "NO"],
             default="YES",
         ),
         Categorical(
             name="GAIN_CRITERION",
-            choices=["YES", "NO"],
+            items=["YES", "NO"],
             default="YES",
         ),
         Integer(
@@ -51,7 +51,7 @@ CONFIGURATION_SPACE = ConfigurationSpace(
         ),
         Categorical(
             name="INITIAL_TOUR_ALGORITHM",
-            choices=[
+            items=[
                 "BORUVKA",
                 "GREEDY",
                 "NEAREST-NEIGHBOR",
@@ -73,7 +73,7 @@ CONFIGURATION_SPACE = ConfigurationSpace(
         ),
         Categorical(
             name="KICK_TYPE",
-            choices=[0, 4, 5],
+            items=[0, 4, 5],
             default=0,
         ),
         Integer(
@@ -108,22 +108,22 @@ CONFIGURATION_SPACE = ConfigurationSpace(
         ),
         Categorical(
             name="RESTRICTED_SEARCH",
-            choices=["YES", "NO"],
+            items=["YES", "NO"],
             default="YES",
         ),
         Categorical(
             name="SUBGRADIENT",
-            choices=["YES", "NO"],
+            items=["YES", "NO"],
             default="YES",
         ),
         Categorical(
             name="SUBSEQUENT_MOVE_TYPE",
-            choices=[0, 2, 3, 4, 5, 6],
+            items=[0, 2, 3, 4, 5, 6],
             default=0,
         ),
         Categorical(
             name="SUBSEQUENT_PATCHING",
-            choices=["YES", "NO"],
+            items=["YES", "NO"],
             default="YES",
         ),
     ],

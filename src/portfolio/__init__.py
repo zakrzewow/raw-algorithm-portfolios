@@ -10,7 +10,7 @@ from src.solver import Solver
 MAX_WORKERS = 4
 
 
-def _solve_instance(solver, instance):
+def _solve_instance(solver: Solver, instance: Instance) -> Tuple[float, float]:
     return solver.solve(instance)
 
 
