@@ -11,4 +11,4 @@ CONCORDE_PATH = SOLVER_DIR / "concorde"
 MAX_WORKERS = 8
 
 if os.name == "nt":
-    MAX_WORKERS = 4
+    MAX_WORKERS = 5

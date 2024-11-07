@@ -5,15 +5,17 @@ from typing import Tuple
 
 from ConfigSpace import Configuration
 
+from src.configuration_space.LKH import CONFIGURATION_SPACE
 from src.constant import LKH_PATH, TEMP_DIR
 from src.instance import TSP_Instance
 from src.solver import Solver
 
 
-class TSP_Solver(Solver):
+class TSP_LKH_Solver(Solver):
     TOTAL_TIME_LIMIT = 10.0
+    CONFIGURATION_SPACE = CONFIGURATION_SPACE
 
-    def __init__(self, config: Configuration):
+    def __init__(self, config: Configuration = None):
         super().__init__(config)
 
     def solve(self, instance: TSP_Instance) -> Tuple[float, float]:
