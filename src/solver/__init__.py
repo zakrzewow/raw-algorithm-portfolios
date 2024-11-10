@@ -1,4 +1,4 @@
-import os
+import copy
 from abc import ABC, abstractmethod
 from typing import Tuple
 
@@ -9,6 +9,7 @@ from src.instance import Instance
 
 class Solver(ABC):
     CONFIGURATION_SPACE: ConfigurationSpace
+    MAX_COST = 0.0
 
     def __init__(self, config: Configuration = None):
         if config is None:
@@ -18,3 +19,6 @@ class Solver(ABC):
     @abstractmethod
     def solve(self, instance: Instance) -> Tuple[float, float]:
         pass
+
+    def copy(self) -> "Solver":
+        return copy.deepcopy(self)

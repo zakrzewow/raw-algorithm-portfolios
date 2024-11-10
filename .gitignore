@@ -3,3 +3,4 @@ solver/LKH*
 solver/Concorde*
 temp/*
 !temp/.gitkeep
+log/*.log

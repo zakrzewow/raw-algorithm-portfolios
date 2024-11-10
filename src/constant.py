@@ -2,8 +2,9 @@ import os
 from pathlib import Path
 
 MAIN_DIR = Path(__file__).resolve().parent.parent
-TEMP_DIR = MAIN_DIR / "temp"
+LOG_DIR = MAIN_DIR / "log"
 SOLVER_DIR = MAIN_DIR / "solver"
+TEMP_DIR = MAIN_DIR / "temp"
 
 LKH_PATH = SOLVER_DIR / "LKH"
 CONCORDE_PATH = SOLVER_DIR / "concorde"
