@@ -3,7 +3,8 @@ from typing import List
 
 
 class Instance(ABC):
-    pass
+    def __eq__(self, value):
+        return hash(self) == hash(value)
 
 
 class InstanceSet(ABC):

@@ -10,6 +10,7 @@ from smac import AlgorithmConfigurationFacade, Scenario
 from smac.runhistory.dataclasses import TrialValue
 
 from src.constant import TEMP_DIR
+from src.database import db_init
 from src.instance import InstanceSet
 from src.log import logger
 from src.portfolio import Portfolio
@@ -33,6 +34,7 @@ class Experiment(ABC):
         self.n = n
         self.solver_class = solver_class
         logger.info(f"[{self.NAME}] Start!")
+        db_init(solver_class)
 
     @abstractmethod
     def construct_portfolio(self, training_instances: InstanceSet) -> Portfolio:
@@ -63,10 +65,14 @@ class Experiment(ABC):
         configuration_time = np.ones(shape=(portfolio.size,)) * self.t_c
         logger.debug(f"SMAC configuration, time: {configuration_time}")
         iteration = 1
-        while configuration_time.sum() > 0:
+        while (configuration_time > 0).any():
             trial_info = smac.ask()
             portfolio.update_config(trial_info.config)
-            cost = portfolio.evaluate(training_instances, configuration_time)
+            cost = portfolio.evaluate(
+                training_instances,
+                configuration_time,
+                "configuration",
+            )
             logger.debug(
                 f"SMAC iteration {iteration}, cost: {cost:.2f}, configuration time: {configuration_time}"
             )
@@ -84,6 +90,8 @@ class Experiment(ABC):
         scenario = Scenario(
             configspace=configuration_space,
             output_directory=self.__temp_dir_path,
+            use_default_config=False,
+            seed=-1,
         )
         smac = AlgorithmConfigurationFacade(
             scenario,
@@ -100,7 +108,7 @@ class Experiment(ABC):
     ) -> float:
         validation_time = np.ones(shape=(portfolio.size,)) * self.t_v
         logger.debug(f"Validation, time: {validation_time}")
-        cost = portfolio.evaluate(training_instances, validation_time)
+        cost = portfolio.evaluate(training_instances, validation_time, "validation")
         logger.debug(
             f"Validation cost: {cost:.2f}, remaining validation time: {validation_time}"
         )

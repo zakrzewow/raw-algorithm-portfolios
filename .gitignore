@@ -4,3 +4,4 @@ solver/Concorde*
 temp/*
 !temp/.gitkeep
 log/*.log
+database/*.db

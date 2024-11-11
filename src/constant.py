@@ -3,6 +3,7 @@ from pathlib import Path
 
 MAIN_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = MAIN_DIR / "data"
+DATABASE_DIR = MAIN_DIR / "database"
 LOG_DIR = MAIN_DIR / "log"
 SOLVER_DIR = MAIN_DIR / "solver"
 TEMP_DIR = MAIN_DIR / "temp"

@@ -13,6 +13,11 @@ class TSP_Instance(Instance):
         self.filepath = filepath
         self.optimum = optimum
 
+    def __hash__(self):
+        path_tuple = self.filepath.parts
+        data_idx = path_tuple.index("data")
+        return "/".join(path_tuple[data_idx:])
+
 
 class TSP_InstanceSet(InstanceSet):
     def __init__(self):

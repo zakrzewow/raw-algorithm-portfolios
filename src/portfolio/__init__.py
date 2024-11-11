@@ -6,11 +6,19 @@ import numpy as np
 from ConfigSpace import Configuration, ConfigurationSpace
 
 from src.constant import MAX_WORKERS
+from src.database import (
+    db_connect,
+    db_fetch_result,
+    db_insert_instance,
+    db_insert_result,
+    db_insert_solver,
+)
 from src.instance import Instance, InstanceSet
+from src.log import logger
 from src.solver import Solver
 
 
-def _solve_instance(solver: Solver, instance: Instance) -> float:
+def _solve_instance(instance: Instance, solver: Solver) -> float:
     return solver.solve(instance)
 
 
@@ -46,33 +54,69 @@ class Portfolio:
         self,
         instances: InstanceSet,
         remaining_time: np.ndarray,
+        comment: str = "",
     ) -> float:
-        executor = concurrent.futures.ProcessPoolExecutor(max_workers=MAX_WORKERS)
+        conn = db_connect()
+        for instance in instances:
+            db_insert_instance(conn, instance)
+
+        for solver in self._solvers:
+            db_insert_solver(conn, solver)
+
         n_instances = len(instances)
         shape = (n_instances, self.size)
-        futures = np.empty(shape=shape, dtype=object)
-        for i in range(n_instances):
-            for j in range(self.size):
-                if remaining_time[j] > 0:
-                    futures[i, j] = executor.submit(
-                        _solve_instance,
-                        self._solvers[j],
-                        instances[i],
-                    )
-
         max_cost = np.array([s.MAX_COST for s in self._solvers])
         costs = np.ones(shape=shape) * max_cost
+
+        executor = concurrent.futures.ProcessPoolExecutor(max_workers=MAX_WORKERS)
+        futures = np.empty(shape=shape, dtype=object)
+
+        for i in range(n_instances):
+            for j in range(self.size):
+                cached_result = db_fetch_result(conn, instances[i], self._solvers[j])
+                if cached_result is not None:
+                    logger.debug(f"({i}, {j}) cached result")
+                    cost, time = cached_result
+                    costs[i, j] = cost
+                    remaining_time[j] = max(0, remaining_time[j] - time)
+                elif remaining_time[j] > 0:
+                    logger.debug(f"({i}, {j}) fn submitted")
+                    futures[i, j] = executor.submit(
+                        _solve_instance,
+                        instances[i],
+                        self._solvers[j],
+                    )
+
         for i in range(n_instances):
             for j in range(self.size):
                 future = futures[i, j]
                 if future is None:
-                    pass
+                    logger.debug(f"({i}, {j}) future None")
+                    continue
                 elif remaining_time[j] <= 0:
+                    logger.debug(f"({i}, {j}) no remaining time")
+                    time = 0
                     future.cancel()
                 else:
-                    cost, time = future.result()
-                    remaining_time[j] -= time
+                    logger.debug(f"({i}, {j}) result")
+                    try:
+                        cost, time = future.result(timeout=15)
+                    except Exception as e:
+                        logger.error(
+                            f"instance {instances[i].__hash__()} solver {self._solvers[j].__hash__()} timeout {e}"
+                        )
+                        future.cancel()
+                        cost, time = 100, 10
+                    remaining_time[j] = max(0, remaining_time[j] - time)
                     costs[i, j] = cost
+                    db_insert_result(
+                        conn,
+                        instances[i],
+                        self._solvers[j],
+                        costs[i, j],
+                        time,
+                        comment,
+                    )
 
         executor.shutdown(cancel_futures=True)
         cost = costs.min(axis=1).mean()

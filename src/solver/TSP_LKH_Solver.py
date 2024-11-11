@@ -29,7 +29,7 @@ class TSP_LKH_Solver(Solver):
         )
         time = self._parse_result(result)
         cost = time if time < self.TOTAL_TIME_LIMIT else time * 10
-        self.remove_config_file(config_filepath)
+        self._remove_config_file(config_filepath)
         return cost, time
 
     def _to_config_file(self, instance_filepath: Path, optimum: float) -> Path:
@@ -55,5 +55,5 @@ class TSP_LKH_Solver(Solver):
             raise Exception("Time.total not found")
         return min(time, self.TOTAL_TIME_LIMIT)
 
-    def remove_config_file(self, config_filepath: Path):
+    def _remove_config_file(self, config_filepath: Path):
         config_filepath.unlink()
