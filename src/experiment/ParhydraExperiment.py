@@ -1,9 +1,9 @@
-from typing import List, Type
+from typing import Type
 
 import numpy as np
 
 from src.experiment import Experiment
-from src.instance import Instance
+from src.instance import InstanceSet
 from src.log import logger
 from src.portfolio import Portfolio
 from src.solver import Solver
@@ -22,7 +22,7 @@ class ParhydraExperiment(Experiment):
     ):
         super().__init__(t_c, t_v, K, n, solver_class)
 
-    def construct_portfolio(self, training_instances: List[Instance]) -> Portfolio:
+    def construct_portfolio(self, training_instances: InstanceSet) -> Portfolio:
         solvers = []
         for i in range(self.K):
             logger.info(f"Solver {i + 1}/{self.K}")

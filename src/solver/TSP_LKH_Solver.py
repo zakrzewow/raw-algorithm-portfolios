@@ -32,10 +32,10 @@ class TSP_LKH_Solver(Solver):
         self.remove_config_file(config_filepath)
         return cost, time
 
-    def _to_config_file(self, problem_filepath: str, optimum: float) -> Path:
+    def _to_config_file(self, instance_filepath: Path, optimum: float) -> Path:
         config_filepath = TEMP_DIR / f"config_{os.getpid()}.par"
         with open(config_filepath, "w") as f:
-            f.write(f"PROBLEM_FILE = {problem_filepath}\n")
+            f.write(f"PROBLEM_FILE = {instance_filepath}\n")
             f.write(f"OPTIMUM = {optimum}\n")
             f.write(f"TRACE_LEVEL = 0\n")
             f.write(f"TOTAL_TIME_LIMIT = {self.TOTAL_TIME_LIMIT}\n")

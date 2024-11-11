@@ -6,7 +6,7 @@ import numpy as np
 from ConfigSpace import Configuration, ConfigurationSpace
 
 from src.constant import MAX_WORKERS
-from src.instance import Instance
+from src.instance import Instance, InstanceSet
 from src.solver import Solver
 
 
@@ -44,7 +44,7 @@ class Portfolio:
 
     def evaluate(
         self,
-        instances: List[Instance],
+        instances: InstanceSet,
         remaining_time: np.ndarray,
     ) -> float:
         executor = concurrent.futures.ProcessPoolExecutor(max_workers=MAX_WORKERS)

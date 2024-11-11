@@ -2,7 +2,7 @@ import logging
 import tempfile
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import List, Type
+from typing import Type
 
 import numpy as np
 from ConfigSpace import Configuration, ConfigurationSpace
@@ -10,7 +10,7 @@ from smac import AlgorithmConfigurationFacade, Scenario
 from smac.runhistory.dataclasses import TrialValue
 
 from src.constant import TEMP_DIR
-from src.instance import Instance
+from src.instance import InstanceSet
 from src.log import logger
 from src.portfolio import Portfolio
 from src.solver import Solver
@@ -35,13 +35,13 @@ class Experiment(ABC):
         logger.info(f"[{self.NAME}] Start!")
 
     @abstractmethod
-    def construct_portfolio(self, training_instances: List[Instance]):
+    def construct_portfolio(self, training_instances: InstanceSet) -> Portfolio:
         pass
 
     def _configure_and_validate(
         self,
         portfolio: Portfolio,
-        training_instances: List[Instance],
+        training_instances: InstanceSet,
         configuration_space: ConfigurationSpace,
     ) -> float:
         incumbent = self._configure_wtih_smac(
@@ -56,7 +56,7 @@ class Experiment(ABC):
     def _configure_wtih_smac(
         self,
         portfolio: Portfolio,
-        training_instances: List[Instance],
+        training_instances: InstanceSet,
         configuration_space: ConfigurationSpace,
     ) -> Configuration:
         smac = self._get_smac_algorithm_configuration_facade(configuration_space)
@@ -96,7 +96,7 @@ class Experiment(ABC):
     def _validate(
         self,
         portfolio: Portfolio,
-        training_instances: List[Instance],
+        training_instances: InstanceSet,
     ) -> float:
         validation_time = np.ones(shape=(portfolio.size,)) * self.t_v
         logger.debug(f"Validation, time: {validation_time}")
