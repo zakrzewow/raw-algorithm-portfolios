@@ -66,7 +66,7 @@ class Portfolio:
             for j in range(self.size):
                 future = futures[i, j]
                 if future is None:
-                    continue
+                    pass
                 elif remaining_time[j] <= 0:
                     future.cancel()
                 else:

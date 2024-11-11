@@ -1,7 +1,6 @@
 from typing import List, Type
 
 import numpy as np
-from ConfigSpace import ConfigurationSpace
 
 from src.experiment import Experiment
 from src.instance import Instance
