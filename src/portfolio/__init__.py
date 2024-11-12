@@ -100,10 +100,10 @@ class Portfolio:
                 else:
                     logger.debug(f"({i}, {j}) result")
                     try:
-                        cost, time = future.result(timeout=15)
-                    except Exception as e:
+                        cost, time = future.result(timeout=13)
+                    except concurrent.futures.TimeoutError:
                         logger.error(
-                            f"instance {instances[i].__hash__()} solver {self._solvers[j].__hash__()} timeout {e}"
+                            f"timeout: instance {instances[i].__hash__()}, solver {self._solvers[j].__hash__()}"
                         )
                         future.cancel()
                         cost, time = 100, 10

@@ -11,7 +11,7 @@ TEMP_DIR = MAIN_DIR / "temp"
 LKH_PATH = SOLVER_DIR / "LKH"
 CONCORDE_PATH = SOLVER_DIR / "concorde"
 
-MAX_WORKERS = 5
+MAX_WORKERS = 10
 
 if os.name == "nt":
     MAX_WORKERS = 5

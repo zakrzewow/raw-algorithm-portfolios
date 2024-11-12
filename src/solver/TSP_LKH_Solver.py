@@ -40,7 +40,7 @@ class TSP_LKH_Solver(Solver):
             f.write(f"TRACE_LEVEL = 0\n")
             f.write(f"TOTAL_TIME_LIMIT = {self.TOTAL_TIME_LIMIT}\n")
             f.write(f"STOP_AT_OPTIMUM = YES\n")
-            f.write(f"RUNS = 10\n")
+            f.write(f"RUNS = 10000\n")
             for k, v in self.config.items():
                 f.write(f"{k} = {v}\n")
         return config_filepath
