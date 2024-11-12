@@ -68,6 +68,7 @@ class Portfolio:
         max_cost = np.array([s.MAX_COST for s in self._solvers])
         costs = np.ones(shape=shape) * max_cost
 
+        logger.debug("executor start")
         executor = concurrent.futures.ProcessPoolExecutor(max_workers=MAX_WORKERS)
         futures = np.empty(shape=shape, dtype=object)
 
@@ -117,8 +118,10 @@ class Portfolio:
                         time,
                         comment,
                     )
+                    logger.debug(f"({i}, {j}) result inserted")
 
         executor.shutdown(cancel_futures=True)
+        logger.debug("executor shutdown")
         cost = costs.min(axis=1).mean()
         return cost
 

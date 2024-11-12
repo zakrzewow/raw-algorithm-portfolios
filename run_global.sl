@@ -5,8 +5,8 @@
 #SBATCH --nodelist=sr-[1-3]
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=10
-#SBATCH --mem-per-cpu=300mb
+#SBATCH --cpus-per-task=11
+#SBATCH --mem-per-cpu=500mb
 #SBATCH --time=03:00:00
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=01161643@pw.edu.pl
