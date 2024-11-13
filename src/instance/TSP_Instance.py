@@ -156,7 +156,7 @@ class TSP_Instance(Instance):
             return {}
 
         result = subprocess.run(
-            command=[UBC_TSP_FEATURE_PATH, "-all", self.filepath],
+            [UBC_TSP_FEATURE_PATH, "-all", self.filepath],
             capture_output=True,
             text=True,
         )
