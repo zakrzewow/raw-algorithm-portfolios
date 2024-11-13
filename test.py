@@ -1,18 +1,13 @@
-import os
+from src.constant import DATA_DIR
+from src.instance.TSP_Instance import TSP_InstanceSet
 
-from rpy2.robjects.packages import importr
+train_instances, test_instances = TSP_InstanceSet.train_test_from_index_file(
+    filepath=DATA_DIR / "TSP" / "CEPS_benchmark" / "index.json",
+    train_size=5,
+    seed=0,
+)
 
-# os.environ["R_HOME"] = (
-#     r"C:\Users\grzegorzzakrzewski\AppData\Local\miniconda3\envs\SMAC\Lib\R"
-# )
-# /home2/faculty/gzakrzewski/miniconda3/envs/SMAC/lib/R
-
-
-tspmeta = importr("tspmeta")
-x = tspmeta.read_tsplib_instance("data/TSP/CEPS_benchmark/cluster/00.tsp")
-features = tspmeta.features(x)
-features = {name: features[i][0] for i, name in enumerate(features.names)}
-
+features = train_instances[0]._calculate_ubc_features()
 print(features)
-# print(type(features[0][0]))
-# print(type(features.names[0]))
+
+# features = train_instances[0].get_features()

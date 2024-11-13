@@ -1,10 +1,16 @@
-from abc import ABC
-from typing import List
+from abc import ABC, abstractmethod
+from typing import Dict, List
 
 
 class Instance(ABC):
+    FEATURES = {}
+
     def __eq__(self, value):
         return hash(self) == hash(value)
+
+    @abstractmethod
+    def get_features(self) -> Dict:
+        pass
 
 
 class InstanceSet(ABC):

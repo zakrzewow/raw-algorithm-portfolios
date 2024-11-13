@@ -10,8 +10,12 @@ TEMP_DIR = MAIN_DIR / "temp"
 
 LKH_PATH = SOLVER_DIR / "LKH"
 CONCORDE_PATH = SOLVER_DIR / "concorde"
-
+UBC_TSP_FEATURE_PATH = SOLVER_DIR / "TSP-feature"
 MAX_WORKERS = 10
 
-if os.name == "nt":
+IS_WINDOWS = os.name == "nt"
+if IS_WINDOWS:
     MAX_WORKERS = 5
+    home = Path.home()
+    r_home = home / "AppData" / "Local" / "miniconda3" / "envs" / "SMAC" / "Lib" / "R"
+    os.environ["R_HOME"] = str(r_home)
