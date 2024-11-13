@@ -1,6 +1,6 @@
 import concurrent.futures
 import copy
-from typing import List, Type
+from typing import Dict, List, Type
 
 import numpy as np
 from ConfigSpace import Configuration, ConfigurationSpace
@@ -22,11 +22,15 @@ def _solve_instance(instance: Instance, solver: Solver) -> float:
     return solver.solve(instance)
 
 
+def _calculate_instance_features(instance: Instance) -> Dict:
+    return instance.calculate_features()
+
+
 class Portfolio:
     def __init__(
         self,
     ):
-        self._solvers = []
+        self._solvers: List[Solver] = []
 
     @classmethod
     def from_solver_class(cls, solver_class: Type[Solver], size: int) -> "Portfolio":
@@ -57,9 +61,21 @@ class Portfolio:
         comment: str = "",
         calculate_instance_features: bool = False,
     ) -> float:
+        logger.debug("executor start")
+        executor = concurrent.futures.ProcessPoolExecutor(max_workers=MAX_WORKERS)
+
         conn = db_connect()
-        for instance in instances:
-            db_insert_instance(conn, instance)
+
+        if calculate_instance_features:
+            futures = []
+            for i, features in enumerate(
+                executor.map(_calculate_instance_features, instances)
+            ):
+                logger.debug(f"{instances[i].__hash__()} features calculated")
+                db_insert_instance(conn, instances[i], features)
+        else:
+            for instance in instances:
+                db_insert_instance(conn, instance)
 
         for solver in self._solvers:
             db_insert_solver(conn, solver)
@@ -69,8 +85,6 @@ class Portfolio:
         max_cost = np.array([s.MAX_COST for s in self._solvers])
         costs = np.ones(shape=shape) * max_cost
 
-        logger.debug("executor start")
-        executor = concurrent.futures.ProcessPoolExecutor(max_workers=MAX_WORKERS)
         futures = np.empty(shape=shape, dtype=object)
 
         for i in range(n_instances):
@@ -108,7 +122,7 @@ class Portfolio:
                             f"timeout: instance {instances[i].__hash__()}, solver {self._solvers[j].__hash__()}"
                         )
                         future.cancel()
-                        cost, time = 100, 10
+                        cost, time = self._solvers[j].max_cost_time
                     remaining_time[j] = max(0, remaining_time[j] - time)
                     costs[i, j] = cost
                     db_insert_result(

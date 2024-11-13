@@ -12,14 +12,12 @@ from src.instance import Instance
 class Solver(ABC):
     CONFIGURATION_SPACE: ConfigurationSpace
     MAX_COST = 0.0
+    MAX_TIME = 0.0
 
     def __init__(self, config: Configuration = None):
         if config is None:
             config = self.CONFIGURATION_SPACE.sample_configuration()
         self.config = config
-
-    def __eq__(self, value):
-        return hash(self) == hash(value)
 
     @abstractmethod
     def solve(self, instance: Instance) -> Tuple[float, float]:
@@ -27,6 +25,10 @@ class Solver(ABC):
 
     def copy(self) -> "Solver":
         return copy.deepcopy(self)
+
+    @property
+    def max_cost_time(self) -> Tuple[float, float]:
+        return self.MAX_COST, self.MAX_TIME
 
     def __hash__(self):
         str_ = ";".join([f"{k}={v}" for k, v in self.config.items()])

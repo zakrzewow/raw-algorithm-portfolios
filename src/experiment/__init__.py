@@ -11,7 +11,7 @@ from smac.runhistory.dataclasses import TrialValue
 
 from src.constant import TEMP_DIR
 from src.database import db_init
-from src.instance import InstanceSet
+from src.instance import Instance, InstanceSet
 from src.log import logger
 from src.portfolio import Portfolio
 from src.solver import Solver
@@ -28,6 +28,7 @@ class Experiment(ABC):
         K: int,
         n: int,
         solver_class: Type[Solver],
+        instance_class: Type[Instance],
     ):
         self.t_c = t_c
         self.t_v = t_v
@@ -35,7 +36,7 @@ class Experiment(ABC):
         self.n = n
         self.solver_class = solver_class
         logger.info(f"[{self.NAME}] Start!")
-        db_init(solver_class)
+        db_init(solver_class, instance_class, self.CALCULATE_INSTANCE_FEATURES)
 
     @abstractmethod
     def construct_portfolio(self, training_instances: InstanceSet) -> Portfolio:

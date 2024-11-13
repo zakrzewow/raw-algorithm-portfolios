@@ -1,10 +1,11 @@
 import datetime as dt
 import sqlite3
-from typing import Tuple, Type
+from typing import Dict, Tuple, Type
 
 import numpy as np
 
 from src.constant import DATABASE_DIR
+from src.instance import Instance
 from src.solver import Solver
 
 DB_PATH = DATABASE_DIR / f"{dt.datetime.now():%Y_%m_%d_%H_%M_%S}.db"
@@ -32,8 +33,24 @@ def _db_create_solvers_table(conn, solver_class: Type[Solver]):
         conn.execute(query)
 
 
-def _db_create_instances_table(conn):
-    query = "CREATE TABLE instances (id TEXT PRIMARY KEY)"
+def _db_create_instances_table(
+    conn,
+    instance_class: Type[Instance],
+    calculate_instance_features: bool,
+):
+    query = ["id TEXT PRIMARY KEY"]
+    if calculate_instance_features:
+        for k, v in instance_class.FEATURES.items():
+            type_ = None
+            if type(v) == int:
+                type_ = "INTEGER"
+            elif type(v) == float:
+                type_ = "REAL"
+            elif type(v) == str:
+                type_ = "TEXT"
+            query.append(f"{k} {type_}")
+    query = ",\n".join(query)
+    query = f"CREATE TABLE instances ({query})"
     with conn:
         conn.execute(query)
 
@@ -53,10 +70,14 @@ def _db_create_results_table(conn):
         conn.execute(query)
 
 
-def db_init(solver_class: Type[Solver]):
+def db_init(
+    solver_class: Type[Solver],
+    instance_class: Type[Instance],
+    calculate_instance_features: bool = False,
+):
     conn = db_connect()
     _db_create_solvers_table(conn, solver_class)
-    _db_create_instances_table(conn)
+    _db_create_instances_table(conn, instance_class, calculate_instance_features)
     _db_create_results_table(conn)
     conn.close()
 
@@ -81,20 +102,31 @@ def db_insert_solver(conn, solver: Solver):
         conn.execute(query, values)
 
 
-def db_insert_instance(conn, instance):
+def db_insert_instance(conn, instance: Instance, features: Dict = {}):
     id_ = instance.__hash__()
 
     cursor = conn.cursor()
-    cursor.execute("SELECT 1 FROM instances WHERE id = ?", (id_,))
+    cursor.execute("SELECT 1 id FROM instances WHERE id = ?", (id_,))
     if cursor.fetchone():
         return
 
-    query = "INSERT INTO instances VALUES (?)"
+    columns = ", ".join(["id"] + list(features.keys()))
+    values = [id_] + list(features.values())
+    question_marks = ", ".join(["?"] * (len(features) + 1))
+
+    query = f"INSERT INTO instances ({columns}) VALUES ({question_marks})"
     with conn:
-        conn.execute(query, (id_,))
+        conn.execute(query, values)
 
 
-def db_insert_result(conn, instance, solver, cost, time, comment):
+def db_insert_result(
+    conn,
+    instance: Instance,
+    solver: Solver,
+    cost: float,
+    time: float,
+    comment: str,
+):
     instance_id = instance.__hash__()
     solver_id = solver.__hash__()
 
@@ -103,7 +135,7 @@ def db_insert_result(conn, instance, solver, cost, time, comment):
         conn.execute(query, (instance_id, solver_id, cost, time, comment))
 
 
-def db_fetch_result(conn, instance, solver) -> Tuple[float, float]:
+def db_fetch_result(conn, instance: Instance, solver: Solver) -> Tuple[float, float]:
     instance_id = instance.__hash__()
     solver_id = solver.__hash__()
 

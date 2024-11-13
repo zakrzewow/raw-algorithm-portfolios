@@ -14,7 +14,7 @@ from src.solver import Solver
 class TSP_LKH_Solver(Solver):
     CONFIGURATION_SPACE = CONFIGURATION_SPACE
     MAX_COST = 100.0
-    TOTAL_TIME_LIMIT = 10.0
+    MAX_TIME = 10.0
 
     def __init__(self, config: Configuration = None):
         super().__init__(config)
@@ -28,7 +28,7 @@ class TSP_LKH_Solver(Solver):
             stdin=subprocess.DEVNULL,
         )
         time = self._parse_result(result)
-        cost = time if time < self.TOTAL_TIME_LIMIT else time * 10
+        cost = time if time < self.MAX_TIME else time * 10
         self._remove_config_file(config_filepath)
         return cost, time
 
@@ -38,7 +38,7 @@ class TSP_LKH_Solver(Solver):
             f.write(f"PROBLEM_FILE = {instance_filepath}\n")
             f.write(f"OPTIMUM = {optimum}\n")
             f.write(f"TRACE_LEVEL = 0\n")
-            f.write(f"TOTAL_TIME_LIMIT = {self.TOTAL_TIME_LIMIT}\n")
+            f.write(f"TOTAL_TIME_LIMIT = {self.MAX_TIME}\n")
             f.write(f"STOP_AT_OPTIMUM = YES\n")
             f.write(f"RUNS = 10000\n")
             for k, v in self.config.items():
@@ -53,7 +53,7 @@ class TSP_LKH_Solver(Solver):
                 break
         if time is None:
             raise Exception("Time.total not found")
-        return min(time, self.TOTAL_TIME_LIMIT)
+        return min(time, self.MAX_TIME)
 
     def _remove_config_file(self, config_filepath: Path):
         config_filepath.unlink()

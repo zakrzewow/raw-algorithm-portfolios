@@ -2,7 +2,7 @@ import numpy as np
 
 from src.constant import DATA_DIR
 from src.experiment.GlobalExperiment import GlobalExperiment
-from src.instance.TSP_Instance import TSP_InstanceSet
+from src.instance.TSP_Instance import TSP_Instance, TSP_InstanceSet
 from src.solver.TSP_LKH_Solver import TSP_LKH_Solver
 
 if __name__ == "__main__":
@@ -11,11 +11,12 @@ if __name__ == "__main__":
         train_size=30,
         seed=0,
     )
-    t_c = int(7.5 * 3600 / 10)
+    t_c = int(7.5 * 3600)
     t_v = int(0.5 * 3600)
     K = 4
     n = 4
     solver_class = TSP_LKH_Solver
+    instance_class = TSP_Instance
 
     experiment = GlobalExperiment(
         t_c=t_c,

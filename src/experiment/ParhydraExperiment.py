@@ -3,7 +3,7 @@ from typing import Type
 import numpy as np
 
 from src.experiment import Experiment
-from src.instance import InstanceSet
+from src.instance import Instance, InstanceSet
 from src.log import logger
 from src.portfolio import Portfolio
 from src.solver import Solver
@@ -19,8 +19,9 @@ class ParhydraExperiment(Experiment):
         K: int,
         n: int,
         solver_class: Type[Solver],
+        instance_class: Type[Instance],
     ):
-        super().__init__(t_c, t_v, K, n, solver_class)
+        super().__init__(t_c, t_v, K, n, solver_class, instance_class)
 
     def construct_portfolio(self, training_instances: InstanceSet) -> Portfolio:
         solvers = []
