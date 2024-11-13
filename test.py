@@ -7,7 +7,6 @@ train_instances, test_instances = TSP_InstanceSet.train_test_from_index_file(
     seed=0,
 )
 
-features = train_instances[0]._calculate_ubc_features()
+features = train_instances[0].get_features()
 print(features)
-
-# features = train_instances[0].get_features()
+print(len(features))
