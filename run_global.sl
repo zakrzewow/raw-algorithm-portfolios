@@ -6,7 +6,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=11
-#SBATCH --mem-per-cpu=500mb
+#SBATCH --mem-per-cpu=1G
 #SBATCH --time=23:59:59
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=01161643@pw.edu.pl

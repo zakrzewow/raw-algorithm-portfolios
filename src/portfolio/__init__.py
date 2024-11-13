@@ -135,7 +135,7 @@ class Portfolio:
                     )
                     logger.debug(f"({i}, {j}) result inserted")
 
-        executor.shutdown(cancel_futures=True)
+        executor.shutdown(wait=False, cancel_futures=True)
         logger.debug("executor shutdown")
         cost = costs.min(axis=1).mean()
         return cost
