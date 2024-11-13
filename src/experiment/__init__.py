@@ -19,6 +19,7 @@ from src.solver import Solver
 
 class Experiment(ABC):
     NAME = "EXPERIMENT"
+    CALCULATE_INSTANCE_FEATURES = False
 
     def __init__(
         self,
@@ -72,6 +73,7 @@ class Experiment(ABC):
                 training_instances,
                 configuration_time,
                 "configuration",
+                calculate_instance_features=self.CALCULATE_INSTANCE_FEATURES,
             )
             logger.debug(
                 f"SMAC iteration {iteration}, cost: {cost:.2f}, configuration time: {configuration_time}"

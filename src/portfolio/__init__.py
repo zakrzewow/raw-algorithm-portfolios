@@ -55,6 +55,7 @@ class Portfolio:
         instances: InstanceSet,
         remaining_time: np.ndarray,
         comment: str = "",
+        calculate_instance_features: bool = False,
     ) -> float:
         conn = db_connect()
         for instance in instances:

@@ -136,7 +136,7 @@ class TSP_Instance(Instance):
         data_idx = path_tuple.index("data")
         return "/".join(path_tuple[data_idx:])
 
-    def get_features(self) -> Dict:
+    def calculate_features(self) -> Dict:
         tspmeta_features = self._calculate_tspmeta_features()
         ubc_features = self._calculate_ubc_features()
         features = {**self.FEATURES, **tspmeta_features, **ubc_features}

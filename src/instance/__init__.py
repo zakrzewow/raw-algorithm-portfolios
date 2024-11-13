@@ -5,12 +5,18 @@ from typing import Dict, List
 class Instance(ABC):
     FEATURES = {}
 
+    def __init__(self):
+        self.features = None
+
     def __eq__(self, value):
         return hash(self) == hash(value)
 
     @abstractmethod
-    def get_features(self) -> Dict:
+    def calculate_features(self) -> Dict:
         pass
+
+    def set_features(self, features: Dict):
+        self.features = features
 
 
 class InstanceSet(ABC):
