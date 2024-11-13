@@ -24,6 +24,7 @@ if __name__ == "__main__":
         K=K,
         n=n,
         solver_class=solver_class,
+        instance_class=instance_class,
     )
 
     best_portfolio = experiment.construct_portfolio(train_instances)
