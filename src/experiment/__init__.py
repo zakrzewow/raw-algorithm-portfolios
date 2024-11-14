@@ -94,6 +94,7 @@ class Experiment(ABC):
             configspace=configuration_space,
             output_directory=self.__temp_dir_path,
             use_default_config=False,
+            deterministic=True,
             seed=-1,
         )
         intensifier = AlgorithmConfigurationFacade.get_intensifier(
