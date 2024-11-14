@@ -96,11 +96,16 @@ class Experiment(ABC):
             use_default_config=False,
             seed=-1,
         )
+        intensifier = AlgorithmConfigurationFacade.get_intensifier(
+            scenario,
+            max_config_calls=1,
+        )
         smac = AlgorithmConfigurationFacade(
             scenario,
             lambda seed: None,
             overwrite=True,
             logging_level=logging.CRITICAL,
+            intensifier=intensifier,
         )
         return smac
 
