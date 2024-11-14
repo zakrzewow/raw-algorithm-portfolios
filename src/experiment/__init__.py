@@ -39,28 +39,28 @@ class Experiment(ABC):
         db_init(solver_class, instance_class, self.CALCULATE_INSTANCE_FEATURES)
 
     @abstractmethod
-    def construct_portfolio(self, training_instances: InstanceSet) -> Portfolio:
+    def construct_portfolio(self, train_instances: InstanceSet) -> Portfolio:
         pass
 
     def _configure_and_validate(
         self,
         portfolio: Portfolio,
-        training_instances: InstanceSet,
+        train_instances: InstanceSet,
         configuration_space: ConfigurationSpace,
     ) -> float:
         incumbent = self._configure_wtih_smac(
             portfolio,
-            training_instances,
+            train_instances,
             configuration_space,
         )
         portfolio.update_config(incumbent)
-        cost = self._validate(portfolio, training_instances)
+        cost = self._validate(portfolio, train_instances)
         return cost
 
     def _configure_wtih_smac(
         self,
         portfolio: Portfolio,
-        training_instances: InstanceSet,
+        train_instances: InstanceSet,
         configuration_space: ConfigurationSpace,
     ) -> Configuration:
         smac = self._get_smac_algorithm_configuration_facade(configuration_space)
@@ -71,7 +71,7 @@ class Experiment(ABC):
             trial_info = smac.ask()
             portfolio.update_config(trial_info.config)
             cost = portfolio.evaluate(
-                training_instances,
+                train_instances,
                 configuration_time,
                 "configuration",
                 calculate_instance_features=self.CALCULATE_INSTANCE_FEATURES,
@@ -113,11 +113,11 @@ class Experiment(ABC):
     def _validate(
         self,
         portfolio: Portfolio,
-        training_instances: InstanceSet,
+        train_instances: InstanceSet,
     ) -> float:
         validation_time = np.ones(shape=(portfolio.size,)) * self.t_v
         logger.debug(f"Validation, time: {validation_time}")
-        cost = portfolio.evaluate(training_instances, validation_time, "validation")
+        cost = portfolio.evaluate(train_instances, validation_time, "validation")
         logger.debug(
             f"Validation cost: {cost:.2f}, remaining validation time: {validation_time}"
         )

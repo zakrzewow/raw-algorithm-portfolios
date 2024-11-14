@@ -82,13 +82,18 @@ def db_init(
     conn.close()
 
 
-def db_insert_solver(conn, solver: Solver):
-    id_ = solver.__hash__()
-
+def db_solver_exists(conn, solver: Solver) -> bool:
+    id_ = str(hash(solver))
     cursor = conn.cursor()
     cursor.execute("SELECT 1 FROM solvers WHERE id = ?", (id_,))
-    if cursor.fetchone():
+    return cursor.fetchone() is not None
+
+
+def db_insert_solver(conn, solver: Solver):
+    if db_solver_exists(conn, solver):
         return
+
+    id_ = str(hash(solver))
 
     values = [id_] + list(solver.config.values())
     for i in range(len(values)):
@@ -102,13 +107,18 @@ def db_insert_solver(conn, solver: Solver):
         conn.execute(query, values)
 
 
-def db_insert_instance(conn, instance: Instance, features: Dict = {}):
+def db_instance_exists(conn, instance: Instance) -> bool:
     id_ = instance.__hash__()
-
     cursor = conn.cursor()
-    cursor.execute("SELECT 1 id FROM instances WHERE id = ?", (id_,))
-    if cursor.fetchone():
+    cursor.execute("SELECT 1 FROM instances WHERE id = ?", (id_,))
+    return cursor.fetchone() is not None
+
+
+def db_insert_instance(conn, instance: Instance, features: Dict = {}):
+    if db_instance_exists(conn, instance):
         return
+
+    id_ = instance.__hash__()
 
     columns = ", ".join(["id"] + list(features.keys()))
     values = [id_] + list(features.values())
@@ -128,7 +138,7 @@ def db_insert_result(
     comment: str,
 ):
     instance_id = instance.__hash__()
-    solver_id = solver.__hash__()
+    solver_id = str(hash(solver))
 
     query = "INSERT INTO results (instance_id, solver_id, cost, time, comment) VALUES (?, ?, ?, ?, ?)"
     with conn:
@@ -137,7 +147,7 @@ def db_insert_result(
 
 def db_fetch_result(conn, instance: Instance, solver: Solver) -> Tuple[float, float]:
     instance_id = instance.__hash__()
-    solver_id = solver.__hash__()
+    solver_id = str(hash(solver))
 
     query = "SELECT MIN(cost), MIN(time) FROM results WHERE instance_id = ? AND solver_id = ?"
     cursor = conn.cursor()

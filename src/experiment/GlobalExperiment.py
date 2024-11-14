@@ -23,7 +23,7 @@ class GlobalExperiment(Experiment):
     ):
         super().__init__(t_c, t_v, K, n, solver_class, instance_class)
 
-    def construct_portfolio(self, training_instances: InstanceSet) -> Portfolio:
+    def construct_portfolio(self, train_instances: InstanceSet) -> Portfolio:
         best_portfolio = None
         best_cost = np.inf
 
@@ -35,7 +35,7 @@ class GlobalExperiment(Experiment):
 
             cost = self._configure_and_validate(
                 portfolio,
-                training_instances,
+                train_instances,
                 configuration_space,
             )
 

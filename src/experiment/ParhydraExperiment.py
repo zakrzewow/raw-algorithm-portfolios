@@ -23,7 +23,7 @@ class ParhydraExperiment(Experiment):
     ):
         super().__init__(t_c, t_v, K, n, solver_class, instance_class)
 
-    def construct_portfolio(self, training_instances: InstanceSet) -> Portfolio:
+    def construct_portfolio(self, train_instances: InstanceSet) -> Portfolio:
         solvers = []
         for i in range(self.K):
             logger.info(f"Solver {i + 1}/{self.K}")
@@ -39,7 +39,7 @@ class ParhydraExperiment(Experiment):
 
                 cost = self._configure_and_validate(
                     portfolio,
-                    training_instances,
+                    train_instances,
                     configuration_space,
                 )
 

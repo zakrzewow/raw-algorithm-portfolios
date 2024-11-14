@@ -12,6 +12,7 @@ from src.database import (
     db_insert_instance,
     db_insert_result,
     db_insert_solver,
+    db_instance_exists,
 )
 from src.instance import Instance, InstanceSet
 from src.log import logger
@@ -37,22 +38,31 @@ class Portfolio:
         portfolio = cls()
         for _ in range(size):
             solver = solver_class()
-            portfolio.add_solver(solver)
+            portfolio.append(solver)
         return portfolio
 
     @classmethod
     def from_solver_list(cls, solvers: List[Solver]) -> "Portfolio":
         portfolio = cls()
         for solver in solvers:
-            portfolio.add_solver(solver.copy())
+            portfolio.append(solver.copy())
         return portfolio
 
-    def add_solver(self, solver: Solver):
+    def append(self, solver: Solver):
         self._solvers.append(solver)
 
     @property
     def size(self) -> int:
         return len(self._solvers)
+
+    def __getitem__(self, item) -> Solver:
+        return self._solvers[item]
+
+    def __setitem__(self, key, value):
+        self._solvers[key] = value
+
+    def __iter__(self):
+        return iter(self._solvers)
 
     def evaluate(
         self,
@@ -68,11 +78,14 @@ class Portfolio:
 
         if calculate_instance_features:
             futures = []
-            for i, features in enumerate(
-                executor.map(_calculate_instance_features, instances)
-            ):
-                logger.debug(f"{instances[i].__hash__()} features calculated")
-                db_insert_instance(conn, instances[i], features)
+            for instance in instances:
+                if not db_instance_exists(conn, instance):
+                    future = executor.submit(_calculate_instance_features, instance)
+                    futures.append((instance, future))
+            for instance, future in futures:
+                features = future.result()
+                logger.debug(f"{instance.__hash__()} features calculated")
+                db_insert_instance(conn, instance, features)
         else:
             for instance in instances:
                 db_insert_instance(conn, instance)
@@ -80,14 +93,13 @@ class Portfolio:
         for solver in self._solvers:
             db_insert_solver(conn, solver)
 
-        n_instances = len(instances)
-        shape = (n_instances, self.size)
+        shape = (instances.size, self.size)
         max_cost = np.array([s.MAX_COST for s in self._solvers])
         costs = np.ones(shape=shape) * max_cost
 
         futures = np.empty(shape=shape, dtype=object)
 
-        for i in range(n_instances):
+        for i in range(instances.size):
             for j in range(self.size):
                 cached_result = db_fetch_result(conn, instances[i], self._solvers[j])
                 if cached_result is not None:
@@ -103,12 +115,11 @@ class Portfolio:
                         self._solvers[j],
                     )
 
-        for i in range(n_instances):
+        for i in range(instances.size):
             for j in range(self.size):
                 future = futures[i, j]
                 if future is None:
                     logger.debug(f"({i}, {j}) future None")
-                    continue
                 elif remaining_time[j] <= 0:
                     logger.debug(f"({i}, {j}) no remaining time")
                     time = 0
@@ -119,7 +130,7 @@ class Portfolio:
                         cost, time = future.result(timeout=13)
                     except concurrent.futures.TimeoutError:
                         logger.error(
-                            f"timeout: instance {instances[i].__hash__()}, solver {self._solvers[j].__hash__()}"
+                            f"timeout: instance {instances[i].__hash__()}, solver {hash(self._solvers[j])}"
                         )
                         future.cancel()
                         cost, time = self._solvers[j].max_cost_time

@@ -19,6 +19,10 @@ class Solver(ABC):
             config = self.CONFIGURATION_SPACE.sample_configuration()
         self.config = config
 
+    @property
+    def max_cost_time(self) -> Tuple[float, float]:
+        return self.MAX_COST, self.MAX_TIME
+
     @abstractmethod
     def solve(self, instance: Instance) -> Tuple[float, float]:
         pass
@@ -26,12 +30,11 @@ class Solver(ABC):
     def copy(self) -> "Solver":
         return copy.deepcopy(self)
 
-    @property
-    def max_cost_time(self) -> Tuple[float, float]:
-        return self.MAX_COST, self.MAX_TIME
-
     def __hash__(self):
         str_ = ";".join([f"{k}={v}" for k, v in self.config.items()])
         sha256_hash = hashlib.sha256(str_.encode()).digest()
-        base64_hash = base64.urlsafe_b64encode(sha256_hash).decode("utf-8")
-        return base64_hash
+        hash_int = int.from_bytes(sha256_hash, byteorder="big")
+        return hash_int
+
+    def __eq__(self, other):
+        return hash(self) == hash(other)
