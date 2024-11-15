@@ -7,6 +7,7 @@ from typing import Type
 import numpy as np
 from ConfigSpace import Configuration, ConfigurationSpace
 from smac import AlgorithmConfigurationFacade, Scenario
+from smac.initial_design import RandomInitialDesign
 from smac.runhistory.dataclasses import TrialValue
 
 from src.constant import TEMP_DIR
@@ -47,11 +48,13 @@ class Experiment(ABC):
         portfolio: Portfolio,
         train_instances: InstanceSet,
         configuration_space: ConfigurationSpace,
+        initial_configuration: Configuration = None,
     ) -> float:
         incumbent = self._configure_wtih_smac(
             portfolio,
             train_instances,
             configuration_space,
+            initial_configuration,
         )
         portfolio.update_config(incumbent)
         cost = self._validate(portfolio, train_instances)
@@ -62,8 +65,12 @@ class Experiment(ABC):
         portfolio: Portfolio,
         train_instances: InstanceSet,
         configuration_space: ConfigurationSpace,
+        initial_configuration: Configuration = None,
     ) -> Configuration:
-        smac = self._get_smac_algorithm_configuration_facade(configuration_space)
+        smac = self._get_smac_algorithm_configuration_facade(
+            configuration_space,
+            initial_configuration,
+        )
         configuration_time = np.ones(shape=(portfolio.size,)) * self.t_c
         logger.debug(f"SMAC configuration, time: {configuration_time}")
         iteration = 1
@@ -88,6 +95,7 @@ class Experiment(ABC):
     def _get_smac_algorithm_configuration_facade(
         self,
         configuration_space: ConfigurationSpace,
+        initial_configuration: Configuration = None,
     ):
         self.__set_temp_dir()
         scenario = Scenario(
@@ -101,12 +109,24 @@ class Experiment(ABC):
             scenario,
             max_config_calls=1,
         )
+        if initial_configuration is not None:
+            n_configs = 0
+            additional_configs = [initial_configuration]
+        else:
+            n_configs = 1
+            additional_configs = []
+        initial_design = RandomInitialDesign(
+            scenario,
+            n_configs=n_configs,
+            additional_configs=additional_configs,
+        )
         smac = AlgorithmConfigurationFacade(
             scenario,
             lambda seed: None,
             overwrite=True,
             logging_level=logging.CRITICAL,
             intensifier=intensifier,
+            initial_design=initial_design,
         )
         return smac
 
