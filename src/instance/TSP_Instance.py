@@ -7,6 +7,7 @@ import numpy as np
 
 from src.constant import DATA_DIR, IS_WINDOWS, UBC_TSP_FEATURE_PATH
 from src.instance import Instance, InstanceSet
+from src.log import logger
 
 
 class TSP_Instance(Instance):
@@ -143,30 +144,38 @@ class TSP_Instance(Instance):
         return features
 
     def _calculate_tspmeta_features(self) -> Dict:
-        from rpy2.robjects.packages import importr
+        try:
+            from rpy2.robjects.packages import importr
 
-        tspmeta = importr("tspmeta")
-        instance = tspmeta.read_tsplib_instance(str(self.filepath))
-        features = tspmeta.features(instance)
-        features = {name: features[i][0] for i, name in enumerate(features.names)}
-        return features
+            tspmeta = importr("tspmeta")
+            instance = tspmeta.read_tsplib_instance(str(self.filepath))
+            features = tspmeta.features(instance)
+            features = {name: features[i][0] for i, name in enumerate(features.names)}
+            return features
+        except Exception as e:
+            logger.error(f"Error calculating tspmeta features: {e}")
+            return {}
 
     def _calculate_ubc_features(self) -> Dict:
         if IS_WINDOWS:
             return {}
 
-        result = subprocess.run(
-            [UBC_TSP_FEATURE_PATH, "-all", self.filepath],
-            capture_output=True,
-            text=True,
-        )
-        output = result.stdout.strip().splitlines()
+        try:
+            result = subprocess.run(
+                [UBC_TSP_FEATURE_PATH, "-all", self.filepath],
+                capture_output=True,
+                text=True,
+            )
+            output = result.stdout.strip().splitlines()
 
-        header = output[0].split(",")
-        values = output[1].split(",")
+            header = output[0].split(",")
+            values = output[1].split(",")
 
-        feature_dict = {header[i]: float(values[i]) for i in range(len(header))}
-        return feature_dict
+            feature_dict = {header[i]: float(values[i]) for i in range(len(header))}
+            return feature_dict
+        except Exception as e:
+            logger.error(f"Error calculating UBC features: {e}")
+            return {}
 
 
 class TSP_InstanceSet(InstanceSet):

@@ -7,6 +7,7 @@ from typing import Tuple
 from ConfigSpace import Configuration, ConfigurationSpace
 
 from src.instance import Instance
+from src.log import logger
 
 
 class Solver(ABC):
@@ -38,3 +39,9 @@ class Solver(ABC):
 
     def __eq__(self, other):
         return hash(self) == hash(other)
+
+    def log(self):
+        str_ = f"{hash(self)} --> "
+        str_ += ";".join([f"{k}={v}" for k, v in self.config.items()])
+        logger.debug(str_)
+        return str_

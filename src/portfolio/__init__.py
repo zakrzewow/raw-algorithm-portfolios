@@ -51,6 +51,12 @@ class Portfolio:
     def append(self, solver: Solver):
         self._solvers.append(solver)
 
+    def log(self):
+        logger.debug("  Portfolio  ".center(80, "="))
+        for solver in self._solvers:
+            solver.log()
+        logger.debug("=" * 80)
+
     @property
     def size(self) -> int:
         return len(self._solvers)

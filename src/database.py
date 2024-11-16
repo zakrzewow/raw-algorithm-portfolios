@@ -32,6 +32,19 @@ def _db_create_solvers_table(conn, solver_class: Type[Solver]):
     with conn:
         conn.execute(query)
 
+    _db_create_solvers_f64_table(conn, solver_class)
+
+
+def _db_create_solvers_f64_table(conn, solver_class: Type[Solver]):
+    query = ["id TEXT PRIMARY KEY"]
+    for k, v in solver_class.CONFIGURATION_SPACE.items():
+        query.append(f"{k} REAL")
+    query = ",\n".join(query)
+    query = f"CREATE TABLE solvers_f64 ({query})"
+
+    with conn:
+        conn.execute(query)
+
 
 def _db_create_instances_table(
     conn,
@@ -102,6 +115,20 @@ def db_insert_solver(conn, solver: Solver):
         elif isinstance(values[i], np.floating):
             values[i] = float(values[i])
     query = f"INSERT INTO solvers VALUES ({', '.join(['?'] * len(values))})"
+
+    with conn:
+        conn.execute(query, values)
+
+    _db_insert_solver_f64(conn, solver)
+
+
+def _db_insert_solver_f64(conn, solver: Solver):
+    id_ = str(hash(solver))
+
+    values = [id_] + solver.config.get_array().tolist()
+    for i in range(1, len(values)):
+        values[i] = float(values[i])
+    query = f"INSERT INTO solvers_f64 VALUES ({', '.join(['?'] * len(values))})"
 
     with conn:
         conn.execute(query, values)
