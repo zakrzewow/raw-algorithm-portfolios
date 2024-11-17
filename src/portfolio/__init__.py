@@ -78,7 +78,6 @@ class Portfolio:
         calculate_instance_features: bool = False,
     ) -> float:
         logger.debug("executor start")
-        executor = concurrent.futures.ProcessPoolExecutor(max_workers=MAX_WORKERS)
 
         conn = db_connect()
 
@@ -99,6 +98,7 @@ class Portfolio:
         max_cost = np.array([s.MAX_COST for s in self._solvers])
         costs = np.ones(shape=shape) * max_cost
 
+        executor = concurrent.futures.ProcessPoolExecutor(max_workers=MAX_WORKERS)
         futures = np.empty(shape=shape, dtype=object)
 
         for i in range(instances.size):
