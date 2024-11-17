@@ -1,5 +1,7 @@
 import json
+import os
 import subprocess
+import tempfile
 import time
 from pathlib import Path
 from typing import Dict, Tuple
@@ -7,7 +9,13 @@ from typing import Dict, Tuple
 import numpy as np
 import pandas as pd
 
-from src.constant import CONCORDE_PATH, DATA_DIR, IS_WINDOWS, UBC_TSP_FEATURE_PATH
+from src.constant import (
+    CONCORDE_PATH,
+    DATA_DIR,
+    IS_WINDOWS,
+    TEMP_DIR,
+    UBC_TSP_FEATURE_PATH,
+)
 from src.instance import Instance, InstanceSet
 from src.log import logger
 
@@ -248,6 +256,10 @@ class TSP_Instance(Instance):
             return 0.0, 100.0
 
         try:
+            temp_dir = tempfile.TemporaryDirectory(dir=TEMP_DIR)
+            old_cwd = os.getcwd()
+            os.chdir(temp_dir.name)
+
             start_time = time.time()
             result = subprocess.run(
                 [CONCORDE_PATH, "-x", self.filepath],
@@ -255,6 +267,10 @@ class TSP_Instance(Instance):
                 text=True,
             )
             end_time = time.time()
+
+            os.chdir(old_cwd)
+            temp_dir.cleanup()
+
             elapsed_time = end_time - start_time
             optimum = None
             for line in result.stdout.splitlines():
