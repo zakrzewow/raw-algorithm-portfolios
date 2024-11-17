@@ -1,12 +1,11 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List, Tuple
 
+from src.log import logger
+
 
 class Instance(ABC):
     FEATURES = {}
-
-    def __init__(self):
-        self.features = None
 
     def __eq__(self, value):
         return hash(self) == hash(value)
@@ -15,11 +14,11 @@ class Instance(ABC):
     def calculate_features(self) -> Dict:
         pass
 
-    def set_features(self, features: Dict):
-        self.features = features
-
     def mutate(self) -> Tuple["Instance", float]:
         pass
+
+    def log(self):
+        logger.debug(str(self.__hash__()))
 
 
 class InstanceSet(ABC):
@@ -50,3 +49,12 @@ class InstanceSet(ABC):
 
     def extend(self, instances: List[Instance]):
         self._set.extend(instances)
+
+    def copy(self) -> "InstanceSet":
+        return self.from_instance_list(self._set)
+
+    def log(self):
+        logger.debug(f"  InstanceSet[size={self.size}]  ".center(80, "="))
+        for instance in self._set:
+            instance.log()
+        logger.debug("=" * 80)

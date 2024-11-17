@@ -34,7 +34,7 @@ class CepsExperiment(Experiment):
     def construct_portfolio(self, train_instances: InstanceSet) -> Portfolio:
         portfolio = self._initialization(train_instances)
         for phase in range(self.max_iter):
-            logger.info(f"Phase {phase + 1}/{self.max_iter}")
+            logger.info(f"Phase {phase + 1}/{self.max_iter} -- solvers")
             portfolio.log()
             best_portfolio = None
             best_cost = np.inf
@@ -62,7 +62,42 @@ class CepsExperiment(Experiment):
             if phase == self.max_iter - 1:
                 break
 
-        # for
+            logger.info(f"Phase {phase + 1}/{self.max_iter} -- instances")
+            portfolio.log()
+            t = {instance.__hash__(): instance for instance in train_instances}
+            tprim = {instance.__hash__(): instance for instance in train_instances}
+            costs = {}
+            for k, instance in tprim.items():
+                costs[k] = portfolio.evaluate(
+                    InstanceSet.from_instance_list([instance]),
+                    np.ones(shape=(self.K,)) * np.inf,
+                    "pre_mutation",
+                )
+            mutation_time = np.ones(shape=(self.K,)) * self.t_i
+            while (mutation_time > 0).any():
+                instance = random.choice(train_instances)
+                logger.info(f"Mutating {instance.__hash__()}, time = {mutation_time}")
+                instance, time = instance.mutate()
+                mutation_time -= time
+                cost = portfolio.evaluate(
+                    InstanceSet.from_instance_list([instance]),
+                    mutation_time,
+                    "mutation",
+                )
+                lower_cost_instances = [k for k, v in costs.items() if v < cost]
+                if len(lower_cost_instances) > 0:
+                    k = random.choice(lower_cost_instances)
+                    logger.debug(
+                        f"Replacing {k} (cost={costs[k]}) with {instance.__hash__()} (cost={cost})"
+                    )
+                    del costs[k]
+                    del tprim[k]
+                    costs[instance.__hash__()] = cost
+                    tprim[instance.__hash__()] = instance
+            t = {**t, **tprim}
+            train_instances = InstanceSet.from_instance_list(list(t.values()))
+            train_instances.log()
+
         return portfolio
 
     def _initialization(self, train_instances: InstanceSet) -> Portfolio:
@@ -76,8 +111,7 @@ class CepsExperiment(Experiment):
             self.solver_class.CONFIGURATION_SPACE.sample_configuration()
             for _ in range(num_of_configs)
         ]
-        for config in configuration_list:
-            logger.debug(f"{dict(config)}")
+
         for i in range(self.K):
             logger.info(f"Solver {i + 1}/{self.K}")
 
