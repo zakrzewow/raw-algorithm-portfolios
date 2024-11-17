@@ -151,9 +151,6 @@ class PcitExperiment(Experiment):
             while len(t) > 0:
                 instance_id = random.choice(list(t.keys()))
                 currenct_solver_id = clustering.get_solver_id(instance_id)
-                logger.debug(
-                    f"Instance {instance_id} is currently with solver {currenct_solver_id}"
-                )
                 del t[instance_id]
 
                 expected_performance = self._get_expected_performance(
@@ -163,25 +160,16 @@ class PcitExperiment(Experiment):
                 )
                 solver_id_instance_count = clustering.solver_id_instance_count
                 for solver_id, performance in expected_performance.items():
-                    logger.debug(
-                        f"Instance {instance_id} comparing current {currenct_solver_id}={expected_performance[currenct_solver_id]:.2f} with {solver_id}={performance:.2f}"
-                    )
                     if (
                         performance < expected_performance[currenct_solver_id]
                         and solver_id_instance_count[solver_id] < self.upper_size
                         and solver_id_instance_count[currenct_solver_id]
                         > self.lower_size
                     ):
-                        logger.debug(
-                            f"Instance {instance_id} will be transferred to solver {solver_id}"
-                        )
                         clustering.assign_instance(instance_id, solver_id)
                         t_done[instance_id] = solver_id
                         break
                 if instance_id not in t_done:
-                    logger.debug(
-                        f"Instance {instance_id} will remain with solver {currenct_solver_id}"
-                    )
                     t_remain[instance_id] = currenct_solver_id
             t = t_remain
             if len(t_done) == 0 or len(t) == 0:
