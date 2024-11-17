@@ -1,11 +1,13 @@
 import json
 import subprocess
+import time
 from pathlib import Path
 from typing import Dict, Tuple
 
 import numpy as np
+import pandas as pd
 
-from src.constant import DATA_DIR, IS_WINDOWS, UBC_TSP_FEATURE_PATH
+from src.constant import CONCORDE_PATH, DATA_DIR, IS_WINDOWS, UBC_TSP_FEATURE_PATH
 from src.instance import Instance, InstanceSet
 from src.log import logger
 
@@ -176,6 +178,95 @@ class TSP_Instance(Instance):
         except Exception as e:
             logger.error(f"Error calculating UBC features: {e}")
             return {}
+
+    def mutate(self) -> Tuple["TSP_Instance", float]:
+        coordinates = []
+
+        with open(self.filepath, "r") as file:
+            for line in file:
+                line = line.strip()
+
+                if not line or line.startswith(
+                    (
+                        "NAME",
+                        "TYPE",
+                        "COMMENT",
+                        "DIMENSION",
+                        "EDGE_WEIGHT_TYPE",
+                        "NODE_COORD_SECTION",
+                    )
+                ):
+                    continue
+
+                if line == "EOF":
+                    break
+
+                parts = line.split()
+                if len(parts) == 3:
+                    node, x, y = parts
+                    coordinates.append((int(node), float(x), float(y)))
+
+        df = pd.DataFrame(coordinates, columns=["node", "X", "Y"]).set_index("node")
+
+        x_min, x_max = df["X"].min(), df["X"].max()
+        y_min, y_max = df["Y"].min(), df["Y"].max()
+
+        do_shift = np.random.binomial(1, 0.9, size=df.shape[0])
+        df.loc[do_shift == 1, "X"] += np.random.normal(
+            0, 0.025 * (x_max - x_min), size=(do_shift == 1).sum()
+        ).round(0)
+        df.loc[do_shift == 1, "Y"] += np.random.normal(
+            0, 0.025 * (y_max - y_min), size=(do_shift == 1).sum()
+        ).round(0)
+        df.loc[do_shift == 0, "X"] += np.random.uniform(
+            x_min, x_max, size=(do_shift == 0).sum()
+        ).round(0)
+        df.loc[do_shift == 0, "Y"] += np.random.uniform(
+            y_min, y_max, size=(do_shift == 0).sum()
+        ).round(0)
+
+        dir_ = DATA_DIR / "TSP" / "CEPS_generated"
+        idx = len(list(dir_.glob("*.tsp")))
+        out_filepath = dir_ / f"{idx}.tsp"
+
+        with open(out_filepath, "w") as file:
+            file.write(f"NAME : GENERATED_{idx}\n")
+            file.write(f"TYPE : TSP\n")
+            file.write(f"DIMENSION : {df.shape[0]}\n")
+            file.write(f"EDGE_WEIGHT_TYPE : EUC_2D\n")
+            file.write(f"NODE_COORD_SECTION\n")
+            for node, x, y in df.itertuples():
+                file.write(f"{node} {x:.0f} {y:.0f}\n")
+            file.write("EOF\n")
+        instance = TSP_Instance(out_filepath, 0)
+        optimum, time = self._get_optimum_with_concorde()
+        instance.optimum = optimum
+        return instance, time
+
+    def _get_optimum_with_concorde(self) -> Tuple[float, float]:
+        if IS_WINDOWS:
+            return 0.0, 100.0
+
+        try:
+            start_time = time.time()
+            result = subprocess.run(
+                [CONCORDE_PATH, "-x", self.filepath],
+                capture_output=True,
+                text=True,
+            )
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+            optimum = None
+            for line in result.stdout.splitlines():
+                if "Optimal Solution:" in line:
+                    optimum = float(line.split()[-1])
+                    break
+            if optimum is None:
+                raise Exception("Optimum not found")
+            return optimum, elapsed_time
+        except Exception as e:
+            logger.error(f"Error calculating optimum with concorde: {e}")
+            return 0.0, 100.0
 
 
 class TSP_InstanceSet(InstanceSet):

@@ -22,26 +22,27 @@ class CepsExperiment(Experiment):
         t_i: int,
         K: int,
         n: int,
+        max_iter: int,
         solver_class: Type[Solver],
         instance_class: Type[Instance],
     ):
         super().__init__(t_c, t_v, K, n, solver_class, instance_class)
         self.t_ini = t_ini
         self.t_i = t_i
+        self.max_iter = max_iter
 
     def construct_portfolio(self, train_instances: InstanceSet) -> Portfolio:
         portfolio = self._initialization(train_instances)
-        best_cost = portfolio.evaluate(
-            train_instances,
-            np.ones(shape=(self.K,)) * np.inf,
-            comment="initialization_validation",
-        )
         for phase in range(self.max_iter):
             logger.info(f"Phase {phase + 1}/{self.max_iter}")
+            portfolio.log()
+            best_portfolio = None
+            best_cost = np.inf
+
             for _ in range(self.n):
-                logger.info(f"Attempt {_ + 1}/{self.n}")
                 i = random.choice(range(portfolio.size))
-                temp_portfolio = Portfolio.copy()
+                logger.info(f"Attempt {_ + 1}/{self.n} -- improving solver {i}")
+                temp_portfolio = portfolio.copy()
                 temp_portfolio[i] = self.solver_class()
                 configuration_space = portfolio.get_configuration_space(i=i)
                 config = {f"{i}__{k}": v for k, v in temp_portfolio[i].config.items()}
@@ -55,7 +56,11 @@ class CepsExperiment(Experiment):
                 logger.info(f"Attempt {_ + 1}/{self.n}: cost = {cost:.2f}")
                 if cost < best_cost:
                     best_cost = cost
-                    portfolio = temp_portfolio
+                    best_portfolio = temp_portfolio
+
+            portfolio = best_portfolio
+            if phase == self.max_iter - 1:
+                break
 
         # for
         return portfolio

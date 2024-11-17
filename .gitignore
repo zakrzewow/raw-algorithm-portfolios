@@ -5,3 +5,4 @@ temp/*
 !temp/.gitkeep
 log/*.log
 database/*.db
+data/TSP/CEPS_generated/*.tsp

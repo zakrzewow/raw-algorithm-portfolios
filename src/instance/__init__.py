@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 
 class Instance(ABC):
@@ -17,6 +17,9 @@ class Instance(ABC):
 
     def set_features(self, features: Dict):
         self.features = features
+
+    def mutate(self) -> Tuple["Instance", float]:
+        pass
 
 
 class InstanceSet(ABC):
