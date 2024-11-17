@@ -85,11 +85,7 @@ class Portfolio:
         if calculate_instance_features:
             futures = []
             for instance in instances:
-                if not db_instance_exists(conn, instance):
-                    future = executor.submit(_calculate_instance_features, instance)
-                    futures.append((instance, future))
-            for instance, future in futures:
-                features = future.result()
+                features = instance.calculate_features()
                 logger.debug(f"{instance.__hash__()} features calculated")
                 db_insert_instance(conn, instance, features)
         else:
