@@ -135,9 +135,6 @@ class Portfolio:
                     try:
                         cost, time = future.result(timeout=13)
                     except concurrent.futures.TimeoutError:
-                        logger.error(
-                            f"timeout: instance {instances[i].__hash__()}, solver {hash(self._solvers[j])}"
-                        )
                         future.cancel()
                         cost, time = self._solvers[j].max_cost_time
                     remaining_time[j] = max(0, remaining_time[j] - time)

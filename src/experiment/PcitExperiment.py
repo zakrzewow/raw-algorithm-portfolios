@@ -102,10 +102,10 @@ class PcitExperiment(Experiment):
             logger.info(f"Attempt {_ + 1}/{self.n}")
             portfolio = Portfolio.from_solver_class(self.solver_class, self.K)
             clustering = _Clustering(portfolio, train_instances)
-            logger.info(f"Clustering: {clustering._cluster_assignments}")
 
             for phase in range(self.max_iter):
                 logger.info(f"Phase {phase + 1}/{self.max_iter}")
+                logger.info(f"Clustering: {clustering._cluster_assignments}")
                 portfolio.log()
                 if phase == self.max_iter - 1:
                     self.t_c = T_C / 2
@@ -140,6 +140,7 @@ class PcitExperiment(Experiment):
 
     def instance_transfer(self, portfolio: Portfolio, clustering: _Clustering):
         logger.debug("Instance transfer")
+        portfolio.log()
         epm = self._get_epm()
         t = self._get_instances_to_transfer(clustering)
         logger.debug(f"Instances to transfer: {t}")
@@ -163,7 +164,7 @@ class PcitExperiment(Experiment):
                 solver_id_instance_count = clustering.solver_id_instance_count
                 for solver_id, performance in expected_performance.items():
                     logger.debug(
-                        f"Instance {instance_id} comparing current {currenct_solver_id}={expected_performance[currenct_solver_id]} with {solver_id}={performance}"
+                        f"Instance {instance_id} comparing current {currenct_solver_id}={expected_performance[currenct_solver_id]:.2f} with {solver_id}={performance:.2f}"
                     )
                     if (
                         performance < expected_performance[currenct_solver_id]
