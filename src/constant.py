@@ -13,11 +13,12 @@ CONCORDE_PATH = SOLVER_DIR / "concorde"
 UBC_TSP_FEATURE_PATH = SOLVER_DIR / "TSP-feature"
 MAX_WORKERS = 10
 
+r_home = Path.home() / "miniconda3" / "envs" / "SMAC" / "lib" / "R"
+
 IS_WINDOWS = os.name == "nt"
 if IS_WINDOWS:
     MAX_WORKERS = 5
+    r_home = Path.home() / "miniconda3" / "envs" / "SMAC" / "Lib" / "R"
+    # r_home = home / "AppData" / "Local" / "miniconda3" / "envs" / "SMAC" / "Lib" / "R"
 
-home = Path.home()
-r_home = home / "miniconda3" / "envs" / "SMAC" / "Lib" / "R"
-# r_home = home / "AppData" / "Local" / "miniconda3" / "envs" / "SMAC" / "Lib" / "R"
 os.environ["R_HOME"] = str(r_home)
