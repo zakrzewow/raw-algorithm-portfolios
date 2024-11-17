@@ -11,7 +11,7 @@ if __name__ == "__main__":
         train_size=30,
         seed=0,
     )
-    t_c = 1200
+    t_c = int(7.5 * 3600)
     t_v = int(1 * 3600)
     K = 4
     n = 4

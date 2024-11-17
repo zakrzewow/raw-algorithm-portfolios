@@ -77,9 +77,9 @@ class Experiment(ABC):
         while (configuration_time > 0).any():
             trial_info = smac.ask()
             portfolio.update_config(trial_info.config)
-            # logger.debug(
-            #     f"SMAC iteration {iteration}, configuration: {dict(trial_info.config)}"
-            # )
+            logger.debug(
+                f"SMAC iteration {iteration}, configuration: {dict(trial_info.config)}"
+            )
             cost = portfolio.evaluate(
                 train_instances,
                 configuration_time,

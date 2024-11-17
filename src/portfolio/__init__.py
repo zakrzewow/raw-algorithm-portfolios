@@ -57,9 +57,12 @@ class Portfolio:
             solver.log()
         logger.debug("=" * 80)
 
+    def __len__(self):
+        return len(self._solvers)
+
     @property
     def size(self) -> int:
-        return len(self._solvers)
+        return len(self)
 
     def __getitem__(self, item) -> Solver:
         return self._solvers[item]
@@ -69,6 +72,9 @@ class Portfolio:
 
     def __iter__(self):
         return iter(self._solvers)
+
+    def copy(self) -> "Portfolio":
+        return copy.deepcopy(self)
 
     def evaluate(
         self,
