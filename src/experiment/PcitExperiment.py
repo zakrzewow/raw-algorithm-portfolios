@@ -229,12 +229,13 @@ class PcitExperiment(Experiment):
 
         for instance_id, solver_id in clustering.instance_id_solver_id.items():
             query = (
-                "SELECT MIN(cost) FROM results WHERE instance_id = ? AND solver_id = ?"
+                "SELECT AVG(cost) FROM results WHERE instance_id = ? AND solver_id = ?"
             )
             cursor = conn.cursor()
             cursor.execute(query, (instance_id, solver_id))
-            result = cursor.fetchone()
-            incumbent_performance[instance_id] = result[0]
+            result = cursor.fetchone()[0]
+            if result is not None:
+                incumbent_performance[instance_id] = result
             cursor.close()
         conn.close()
         median = np.median(list(incumbent_performance.values()))
