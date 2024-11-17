@@ -18,5 +18,6 @@ if IS_WINDOWS:
     MAX_WORKERS = 5
     home = Path.home()
     # r_home = home / "AppData" / "Local" / "miniconda3" / "envs" / "SMAC" / "Lib" / "R"
-    r_home = home / "miniconda3" / "envs" / "SMAC" / "Lib" / "R"
-    os.environ["R_HOME"] = str(r_home)
+
+r_home = home / "miniconda3" / "envs" / "SMAC" / "Lib" / "R"
+os.environ["R_HOME"] = str(r_home)
