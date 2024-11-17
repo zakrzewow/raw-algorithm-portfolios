@@ -95,17 +95,6 @@ class Portfolio:
         else:
             for instance in instances:
                 db_insert_instance(conn, instance)
-        conn = db_connect()
-
-        if calculate_instance_features:
-            futures = []
-            for instance in instances:
-                features = instance.calculate_features()
-                logger.debug(f"{instance.__hash__()} features calculated")
-                db_insert_instance(conn, instance, features)
-        else:
-            for instance in instances:
-                db_insert_instance(conn, instance)
 
         for solver in self._solvers:
             db_insert_solver(conn, solver)
