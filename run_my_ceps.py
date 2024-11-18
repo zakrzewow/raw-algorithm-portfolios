@@ -1,7 +1,7 @@
 import numpy as np
 
 from src.constant import DATA_DIR
-from src.experiment.CepsExperiment import CepsExperiment
+from src.experiment.CepsMy1Experiment import CepsMy1Experiment
 from src.instance.TSP_Instance import TSP_Instance, TSP_InstanceSet
 from src.solver.TSP_LKH_Solver import TSP_LKH_Solver
 
@@ -22,7 +22,7 @@ if __name__ == "__main__":
     solver_class = TSP_LKH_Solver
     instance_class = TSP_Instance
 
-    experiment = CepsExperiment(
+    experiment = CepsMy1Experiment(
         t_c=t_c,
         t_v=t_v,
         t_ini=t_ini,
