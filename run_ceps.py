@@ -12,13 +12,13 @@ if __name__ == "__main__":
         seed=0,
     )
 
-    t_c = 1200
-    t_v = 1800
+    t_c = int(1.5 * 3600)
+    t_v = int(0.5 * 3600)
     K = 4
-    n = 4
-    t_ini = sum([i * train_instances.size * 10 for i in range(1, K + 1)]) * 2
+    n = 10
+    t_ini = int(8 * 3600)
     t_i = 1200
-    max_iter = 10
+    max_iter = 4
     solver_class = TSP_LKH_Solver
     instance_class = TSP_Instance
 
