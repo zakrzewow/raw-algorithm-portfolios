@@ -80,7 +80,7 @@ class CepsMy1Experiment(Experiment):
                     train_instances,
                     configuration_space,
                     config,
-                    n_trials=self.t_c // 20,
+                    n_trials=50,
                 )
                 temp_portfolio.update_config(incumbent)
                 cost = self._validate(temp_portfolio, train_instances)
@@ -184,7 +184,7 @@ class CepsMy1Experiment(Experiment):
         train_instances: InstanceSet,
         configuration_space: ConfigurationSpace,
         initial_configuration: Configuration = None,
-        n_trials: int = 10,
+        n_trials: int = 50,
     ) -> Configuration:
         epm = self._get_epm()
         conn = db_connect()
@@ -196,10 +196,6 @@ class CepsMy1Experiment(Experiment):
         for _ in range(n_trials):
             trial_info = smac.ask()
             portfolio.update_config(trial_info.config)
-            logger.debug(
-                f"SMAC iteration {_ + 1}, configuration: {dict(trial_info.config)}"
-            )
-
             shape = (train_instances.size, portfolio.size)
             max_cost = np.array([s.MAX_COST for s in portfolio])
             costs = np.ones(shape=shape) * max_cost
@@ -209,7 +205,6 @@ class CepsMy1Experiment(Experiment):
                         conn, train_instances[i], portfolio[j]
                     )
                     if cached_result is not None:
-                        logger.debug(f"({i}, {j}) cached result")
                         cost, time = cached_result
                         costs[i, j] = cost
                     else:
