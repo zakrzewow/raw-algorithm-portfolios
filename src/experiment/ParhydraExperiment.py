@@ -16,13 +16,12 @@ class ParhydraExperiment(Experiment):
     def __init__(
         self,
         t_c: int,
-        t_v: int,
         K: int,
         n: int,
         solver_class: Type[Solver],
         instance_class: Type[Instance],
     ):
-        super().__init__(t_c, t_v, K, n, solver_class, instance_class)
+        super().__init__(t_c, K, n, solver_class, instance_class)
 
     def construct_portfolio(self, train_instances: InstanceSet) -> Portfolio:
         solvers = []
@@ -67,8 +66,7 @@ class ParhydraExperiment(Experiment):
                         portfolio = Portfolio.from_solver_list(solvers + [solver])
                         cost = portfolio.evaluate(
                             train_instances,
-                            np.ones(shape=(self.K,)) * np.inf,
-                            "largest_marginal_contribution",
+                            comment="largest_marginal_contribution",
                         )
                         if cost < best_cost:
                             best_cost = cost

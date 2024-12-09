@@ -22,7 +22,6 @@ class CepsMy1Experiment(Experiment):
     def __init__(
         self,
         t_c: int,
-        t_v: int,
         t_ini: int,
         t_i: int,
         K: int,
@@ -31,7 +30,7 @@ class CepsMy1Experiment(Experiment):
         solver_class: Type[Solver],
         instance_class: Type[Instance],
     ):
-        super().__init__(t_c, t_v, K, n, solver_class, instance_class)
+        super().__init__(t_c, K, n, solver_class, instance_class)
         self.t_ini = t_ini
         self.t_i = t_i
         self.max_iter = max_iter
@@ -101,8 +100,7 @@ class CepsMy1Experiment(Experiment):
             for k, instance in tprim.items():
                 costs[k] = portfolio.evaluate(
                     InstanceSet.from_instance_list([instance]),
-                    np.ones(shape=(self.K,)) * np.inf,
-                    "pre_mutation",
+                    comment="pre_mutation",
                     calculate_instance_features=self.CALCULATE_INSTANCE_FEATURES,
                 )
             mutation_time = np.ones(shape=(self.K,)) * self.t_i

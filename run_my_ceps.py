@@ -1,5 +1,3 @@
-import numpy as np
-
 from src.constant import DATA_DIR
 from src.experiment.CepsMy1Experiment import CepsMy1Experiment
 from src.instance.TSP_Instance import TSP_Instance, TSP_InstanceSet
@@ -13,7 +11,6 @@ if __name__ == "__main__":
     )
 
     t_c = int(1.5 * 3600)
-    t_v = int(0.5 * 3600)
     K = 4
     n = 10
     t_ini = int(8 * 3600)
@@ -24,7 +21,6 @@ if __name__ == "__main__":
 
     experiment = CepsMy1Experiment(
         t_c=t_c,
-        t_v=t_v,
         t_ini=t_ini,
         t_i=t_i,
         K=K,
@@ -36,5 +32,4 @@ if __name__ == "__main__":
 
     best_portfolio = experiment.construct_portfolio(train_instances)
 
-    remaining_time = np.ones(shape=(K,)) * np.inf
-    best_portfolio.evaluate(test_instances, remaining_time, "test")
+    best_portfolio.evaluate(test_instances, comment="test")

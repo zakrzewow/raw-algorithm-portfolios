@@ -25,14 +25,12 @@ class Experiment(ABC):
     def __init__(
         self,
         t_c: int,
-        t_v: int,
         K: int,
         n: int,
         solver_class: Type[Solver],
         instance_class: Type[Instance],
     ):
         self.t_c = t_c
-        self.t_v = t_v
         self.K = K
         self.n = n
         self.solver_class = solver_class
@@ -74,7 +72,7 @@ class Experiment(ABC):
         configuration_time = np.ones(shape=(portfolio.size,)) * self.t_c
         logger.debug(f"SMAC configuration, time: {configuration_time}")
         iteration = 1
-        while (configuration_time > 0).any():
+        while (configuration_time > 0).all():
             trial_info = smac.ask()
             portfolio.update_config(trial_info.config)
             logger.debug(
@@ -138,12 +136,9 @@ class Experiment(ABC):
         portfolio: Portfolio,
         train_instances: InstanceSet,
     ) -> float:
-        validation_time = np.ones(shape=(portfolio.size,)) * self.t_v
-        logger.debug(f"Validation, time: {validation_time}")
-        cost = portfolio.evaluate(train_instances, validation_time, "validation")
-        logger.debug(
-            f"Validation cost: {cost:.2f}, remaining validation time: {validation_time}"
-        )
+        logger.debug(f"Validation")
+        cost = portfolio.evaluate(train_instances, comment="validation")
+        logger.debug(f"Validation cost: {cost:.2f}")
         return cost
 
     def __set_temp_dir(self):

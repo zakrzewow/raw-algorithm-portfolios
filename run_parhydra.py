@@ -1,5 +1,3 @@
-import numpy as np
-
 from src.constant import DATA_DIR
 from src.experiment.ParhydraExperiment import ParhydraExperiment
 from src.instance.TSP_Instance import TSP_Instance, TSP_InstanceSet
@@ -11,16 +9,14 @@ if __name__ == "__main__":
         train_size=30,
         seed=0,
     )
-    t_c = int(2 * 3600)
-    t_v = int(1 * 3600)
+    t_c = int(0.5 * 3600)
     K = 4
-    n = 4
+    n = 10
     solver_class = TSP_LKH_Solver
     instance_class = TSP_Instance
 
     experiment = ParhydraExperiment(
         t_c=t_c,
-        t_v=t_v,
         K=K,
         n=n,
         solver_class=solver_class,
@@ -29,5 +25,4 @@ if __name__ == "__main__":
 
     best_portfolio = experiment.construct_portfolio(train_instances)
 
-    remaining_time = np.ones(shape=(K,)) * np.inf
-    best_portfolio.evaluate(test_instances, remaining_time, "test")
+    best_portfolio.evaluate(test_instances, comment="test")

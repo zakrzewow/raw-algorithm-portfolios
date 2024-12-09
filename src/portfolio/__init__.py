@@ -79,11 +79,15 @@ class Portfolio:
     def evaluate(
         self,
         instances: InstanceSet,
-        remaining_time: np.ndarray,
+        remaining_time: np.ndarray = None,
         comment: str = "",
         calculate_instance_features: bool = False,
     ) -> float:
         logger.debug("executor start")
+
+        if remaining_time is None:
+            remaining_time = np.ones(shape=(self.size,)) * np.inf
+
         executor = concurrent.futures.ProcessPoolExecutor(max_workers=MAX_WORKERS)
 
         conn = db_connect()
@@ -116,9 +120,8 @@ class Portfolio:
                 cached_result = db_fetch_result(conn, instances[i], self._solvers[j])
                 if cached_result is not None:
                     logger.debug(f"({i}, {j}) cached result")
-                    cost, time = cached_result
+                    cost, _ = cached_result
                     costs[i, j] = cost
-                    remaining_time[j] = max(0, remaining_time[j] - time)
                 elif remaining_time[j] > 0:
                     logger.debug(f"({i}, {j}) fn submitted")
                     futures[i, j] = executor.submit(

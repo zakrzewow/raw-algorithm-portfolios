@@ -15,13 +15,12 @@ class GlobalExperiment(Experiment):
     def __init__(
         self,
         t_c: int,
-        t_v: int,
         K: int,
         n: int,
         solver_class: Type[Solver],
         instance_class: Type[Instance],
     ):
-        super().__init__(t_c, t_v, K, n, solver_class, instance_class)
+        super().__init__(t_c, K, n, solver_class, instance_class)
 
     def construct_portfolio(self, train_instances: InstanceSet) -> Portfolio:
         best_portfolio = None

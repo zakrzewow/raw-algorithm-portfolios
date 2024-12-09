@@ -1,5 +1,3 @@
-import numpy as np
-
 from src.constant import DATA_DIR
 from src.experiment.PcitExperiment import PcitExperiment
 from src.instance.TSP_Instance import TSP_Instance, TSP_InstanceSet
@@ -12,7 +10,6 @@ if __name__ == "__main__":
         seed=0,
     )
     t_c = int(7.5 * 3600)
-    t_v = int(1 * 3600)
     K = 4
     n = 4
     max_iter = 4
@@ -21,7 +18,6 @@ if __name__ == "__main__":
 
     experiment = PcitExperiment(
         t_c=t_c,
-        t_v=t_v,
         K=K,
         n=n,
         max_iter=max_iter,
@@ -31,5 +27,4 @@ if __name__ == "__main__":
 
     best_portfolio = experiment.construct_portfolio(train_instances)
 
-    remaining_time = np.ones(shape=(K,)) * np.inf
-    best_portfolio.evaluate(test_instances, remaining_time, "test")
+    best_portfolio.evaluate(test_instances, comment="test")
