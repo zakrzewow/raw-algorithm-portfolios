@@ -82,6 +82,7 @@ class Portfolio:
         remaining_time: np.ndarray = None,
         comment: str = "",
         calculate_instance_features: bool = False,
+        cache: bool = True,
     ) -> float:
         logger.debug("executor start")
 
@@ -118,7 +119,7 @@ class Portfolio:
         for i in range(instances.size):
             for j in range(self.size):
                 cached_result = db_fetch_result(conn, instances[i], self._solvers[j])
-                if cached_result is not None:
+                if cached_result is not None and cache:
                     logger.debug(f"({i}, {j}) cached result")
                     cost, _ = cached_result
                     costs[i, j] = cost
