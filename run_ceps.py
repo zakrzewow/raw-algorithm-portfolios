@@ -34,4 +34,6 @@ if __name__ == "__main__":
 
     best_portfolio = experiment.construct_portfolio(train_instances)
 
-    best_portfolio.evaluate(test_instances, comment="test")
+    best_portfolio.evaluate(test_instances, comment="test1", cache=False)
+    best_portfolio.evaluate(test_instances, comment="test2", cache=False)
+    best_portfolio.evaluate(test_instances, comment="test3", cache=False)

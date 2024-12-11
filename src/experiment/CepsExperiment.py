@@ -102,11 +102,7 @@ class CepsExperiment(Experiment):
         solvers = []
         logger.info("Initialization")
 
-        num_of_configs = (
-            self.t_ini
-            // sum([i * train_instances.size * 10 for i in range(1, self.K + 1)])
-            + 1
-        )
+        num_of_configs = self.t_ini // (train_instances.size * 10)
         configuration_list = [
             self.solver_class.CONFIGURATION_SPACE.sample_configuration()
             for _ in range(num_of_configs)
