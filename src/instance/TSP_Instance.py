@@ -226,10 +226,10 @@ class TSP_Instance(Instance):
         df.loc[do_shift == 1, "Y"] += np.random.normal(
             0, 0.025 * (y_max - y_min), size=(do_shift == 1).sum()
         ).round(0)
-        df.loc[do_shift == 0, "X"] += np.random.uniform(
+        df.loc[do_shift == 0, "X"] = np.random.uniform(
             x_min, x_max, size=(do_shift == 0).sum()
         ).round(0)
-        df.loc[do_shift == 0, "Y"] += np.random.uniform(
+        df.loc[do_shift == 0, "Y"] = np.random.uniform(
             y_min, y_max, size=(do_shift == 0).sum()
         ).round(0)
 
@@ -247,7 +247,7 @@ class TSP_Instance(Instance):
                 file.write(f"{node} {x:.0f} {y:.0f}\n")
             file.write("EOF\n")
         instance = TSP_Instance(out_filepath, 0)
-        optimum, time = self._get_optimum_with_concorde()
+        optimum, time = instance._get_optimum_with_concorde()
         instance.optimum = optimum
         return instance, time
 
