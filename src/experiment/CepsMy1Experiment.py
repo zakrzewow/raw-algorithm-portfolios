@@ -182,11 +182,11 @@ class CepsMy1Experiment(Experiment):
         n_trials: int = 50,
         prefix="",
     ) -> Configuration:
-        real_cost = portfolio.evaluate(
-            train_instances,
-            comment=prefix + "before",
-        )
-        logger.critical(f"{prefix}before;real_cost={real_cost:.2f}")
+        # real_cost = portfolio.evaluate(
+        #     train_instances,
+        #     comment=prefix + "before",
+        # )
+        # logger.critical(f"{prefix}before;real_cost={real_cost:.2f}")
         rf_classifier, rf_regressor = self._get_epm()
         conn = db_connect()
         smac = self._get_smac_algorithm_configuration_facade(
@@ -233,24 +233,22 @@ class CepsMy1Experiment(Experiment):
                         costs[i, j] = costs_pred
                         logger.debug(f"({i}, {j}) EPM cost: {costs[i, j]}")
             cost = costs.min(axis=1).mean()
-            real_cost = portfolio.evaluate(
-                train_instances,
-                comment=prefix + f"trial={_ + 1};cost={cost:.2f}",
-            )
-            logger.critical(
-                f"{prefix}trial={_ + 1};cost={cost:.2f};real_cost={real_cost:.2f}"
-            )
-            logger.debug(
-                f"SMAC iteration {_ + 1}, cost: {cost:.2f}, real cost: {real_cost:.2f}"
-            )
+            # real_cost = portfolio.evaluate(
+            #     train_instances,
+            #     comment=prefix + f"trial={_ + 1};cost={cost:.2f}",
+            # )
+            # logger.critical(
+            #     f"{prefix}trial={_ + 1};cost={cost:.2f};real_cost={real_cost:.2f}"
+            # )
+            logger.debug(f"SMAC iteration {_ + 1}, cost: {cost:.2f}")
             trial_value = TrialValue(cost=cost)
             smac.tell(trial_info, trial_value)
         incumbent = smac.intensifier.get_incumbent()
-        real_cost = portfolio.evaluate(
-            train_instances,
-            comment=prefix + "after",
-        )
-        logger.critical(f"{prefix}after;real_cost={real_cost:.2f}")
+        # real_cost = portfolio.evaluate(
+        #     train_instances,
+        #     comment=prefix + "after",
+        # )
+        # logger.critical(f"{prefix}after;real_cost={real_cost:.2f}")
         return incumbent
 
     def _get_epm(self):
@@ -285,6 +283,8 @@ class CepsMy1Experiment(Experiment):
         )
         rf_classifier.fit(X, y_timeout)
 
+        X_score = X[y < self.solver_class.MAX_COST]
+        y_score = y[y < self.solver_class.MAX_COST]
         rf_regressor = RandomForestRegressor(
             max_depth=20,
             max_features=0.4,
@@ -294,5 +294,5 @@ class CepsMy1Experiment(Experiment):
             random_state=0,
             n_jobs=10,
         )
-        rf_regressor = rf_regressor.fit(X, y)
+        rf_regressor = rf_regressor.fit(X_score, y_score)
         return rf_classifier, rf_regressor
