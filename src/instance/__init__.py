@@ -11,7 +11,7 @@ class Instance(ABC):
         return hash(self) == hash(value)
 
     @abstractmethod
-    def calculate_features(self) -> Dict:
+    def calculate_features(self) -> Tuple[float, Dict]:
         pass
 
     def mutate(self) -> Tuple["Instance", float]:

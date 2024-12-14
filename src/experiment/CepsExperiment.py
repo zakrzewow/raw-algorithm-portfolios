@@ -72,7 +72,7 @@ class CepsExperiment(Experiment):
                     comment="pre_mutation",
                 )
             mutation_time = np.ones(shape=(self.K,)) * self.t_i
-            while (mutation_time > 0).any():
+            while (mutation_time > 0).all():
                 instance = random.choice(train_instances)
                 logger.info(f"Mutating {instance.__hash__()}, time = {mutation_time}")
                 instance, time = instance.mutate()

@@ -4,7 +4,7 @@ from typing import Type
 import numpy as np
 import pandas as pd
 from ConfigSpace import Configuration, ConfigurationSpace
-from smac.model.random_forest import RandomForest
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from smac.runhistory.dataclasses import TrialValue
 
 from src.database import db_connect, db_fetch_result
@@ -80,6 +80,7 @@ class CepsMy1Experiment(Experiment):
                     configuration_space,
                     config,
                     n_trials=50,
+                    prefix=f"phase={phase + 1};n={_ + 1};",
                 )
                 temp_portfolio.update_config(incumbent)
                 cost = self._validate(temp_portfolio, train_instances)
@@ -104,7 +105,7 @@ class CepsMy1Experiment(Experiment):
                     calculate_instance_features=self.CALCULATE_INSTANCE_FEATURES,
                 )
             mutation_time = np.ones(shape=(self.K,)) * self.t_i
-            while (mutation_time > 0).any():
+            while (mutation_time > 0).all():
                 instance = random.choice(train_instances)
                 logger.info(f"Mutating {instance.__hash__()}, time = {mutation_time}")
                 instance, time = instance.mutate()
@@ -135,11 +136,7 @@ class CepsMy1Experiment(Experiment):
         solvers = []
         logger.info("Initialization")
 
-        num_of_configs = (
-            self.t_ini
-            // sum([i * train_instances.size * 10 for i in range(1, self.K + 1)])
-            + 1
-        )
+        num_of_configs = self.t_ini // (train_instances.size * 10)
         configuration_list = [
             self.solver_class.CONFIGURATION_SPACE.sample_configuration()
             for _ in range(num_of_configs)
@@ -183,13 +180,20 @@ class CepsMy1Experiment(Experiment):
         configuration_space: ConfigurationSpace,
         initial_configuration: Configuration = None,
         n_trials: int = 50,
+        prefix="",
     ) -> Configuration:
-        epm = self._get_epm()
+        real_cost = portfolio.evaluate(
+            train_instances,
+            comment=prefix + "before",
+        )
+        logger.critical(f"{prefix}before;real_cost={real_cost:.2f}")
+        rf_classifier, rf_regressor = self._get_epm()
         conn = db_connect()
         smac = self._get_smac_algorithm_configuration_facade(
             configuration_space,
             initial_configuration,
         )
+
         logger.debug(f"SMAC configuration with surrogate model")
         for _ in range(n_trials):
             trial_info = smac.ask()
@@ -220,27 +224,37 @@ class CepsMy1Experiment(Experiment):
                             .to_numpy()
                         )
                         X = np.concatenate([solver_array, instance_array], axis=1)
-                        costs[i, j] = epm.predict(X)[0][0][0]
+                        is_timeout = ~rf_classifier.predict(X)[0]
+                        if is_timeout:
+                            costs_pred = self.solver_class.MAX_COST
+                        if not is_timeout:
+                            costs_pred = rf_regressor.predict(X)[0]
+
+                        costs[i, j] = costs_pred
                         logger.debug(f"({i}, {j}) EPM cost: {costs[i, j]}")
             cost = costs.min(axis=1).mean()
-            logger.debug(f"SMAC iteration {_ + 1}, cost: {cost:.2f}")
+            real_cost = portfolio.evaluate(
+                train_instances,
+                comment=prefix + f"trial={_ + 1};cost={cost:.2f}",
+            )
+            logger.critical(
+                f"{prefix}trial={_ + 1};cost={cost:.2f};real_cost={real_cost:.2f}"
+            )
+            logger.debug(
+                f"SMAC iteration {_ + 1}, cost: {cost:.2f}, real cost: {real_cost:.2f}"
+            )
             trial_value = TrialValue(cost=cost)
             smac.tell(trial_info, trial_value)
         incumbent = smac.intensifier.get_incumbent()
+        real_cost = portfolio.evaluate(
+            train_instances,
+            comment=prefix + "after",
+        )
+        logger.critical(f"{prefix}after;real_cost={real_cost:.2f}")
         return incumbent
 
     def _get_epm(self):
         conn = db_connect()
-        query = """
-        select 
-            instances.*
-        from results
-        join instances on results.instance_id = instances.id
-        """
-
-        instance_features = pd.read_sql_query(query, conn).drop(columns="id")
-        instance_features = instance_features.T.to_dict(orient="list")
-
         query = """
         select 
             results.cost,
@@ -249,6 +263,7 @@ class CepsMy1Experiment(Experiment):
         from results
         join instances on results.instance_id = instances.id
         join solvers_f64 on results.solver_id = solvers_f64.id
+        WHERE comment in ('initialization', 'configuration')
         """
 
         df = pd.read_sql_query(query, conn).drop(columns="id")
@@ -256,11 +271,28 @@ class CepsMy1Experiment(Experiment):
 
         y = df["cost"].to_numpy()
         X = df.drop(columns="cost").to_numpy()
+        y_timeout = y != self.solver_class.MAX_COST
 
-        epm = RandomForest(
-            configspace=self.solver_class.CONFIGURATION_SPACE,
-            seed=0,
-            instance_features=instance_features,
+        rf_classifier = RandomForestClassifier(
+            class_weight="balanced",
+            max_depth=50,
+            max_features=0.4,
+            min_samples_leaf=8,
+            min_samples_split=20,
+            n_estimators=200,
+            random_state=0,
+            n_jobs=10,
         )
-        epm = epm.train(X, y)
-        return epm
+        rf_classifier.fit(X, y_timeout)
+
+        rf_regressor = RandomForestRegressor(
+            max_depth=20,
+            max_features=0.4,
+            min_samples_leaf=8,
+            min_samples_split=40,
+            n_estimators=200,
+            random_state=0,
+            n_jobs=10,
+        )
+        rf_regressor = rf_regressor.fit(X, y)
+        return rf_classifier, rf_regressor

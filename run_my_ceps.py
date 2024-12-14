@@ -16,6 +16,7 @@ if __name__ == "__main__":
     t_ini = int(8 * 3600)
     t_i = int(1 * 3600)
     max_iter = 4
+
     solver_class = TSP_LKH_Solver
     instance_class = TSP_Instance
 
@@ -32,4 +33,6 @@ if __name__ == "__main__":
 
     best_portfolio = experiment.construct_portfolio(train_instances)
 
-    best_portfolio.evaluate(test_instances, comment="test")
+    best_portfolio.evaluate(test_instances, comment="test1", cache=False)
+    best_portfolio.evaluate(test_instances, comment="test2", cache=False)
+    best_portfolio.evaluate(test_instances, comment="test3", cache=False)

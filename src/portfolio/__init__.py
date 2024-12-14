@@ -100,8 +100,11 @@ class Portfolio:
                     future = executor.submit(_calculate_instance_features, instance)
                     futures.append((instance, future))
             for instance, future in futures:
-                features = future.result()
-                logger.debug(f"{instance.__hash__()} features calculated")
+                time, features = future.result()
+                remaining_time -= time
+                logger.debug(
+                    f"{instance.__hash__()} features calculated (time={time:.2f})"
+                )
                 db_insert_instance(conn, instance, features)
         else:
             for instance in instances:

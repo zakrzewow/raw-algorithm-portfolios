@@ -147,11 +147,14 @@ class TSP_Instance(Instance):
         data_idx = path_tuple.index("data")
         return "/".join(path_tuple[data_idx:])
 
-    def calculate_features(self) -> Dict:
+    def calculate_features(self) -> Tuple[float, Dict]:
+        start_time = time.time()
         tspmeta_features = self._calculate_tspmeta_features()
         ubc_features = self._calculate_ubc_features()
         features = {**self.FEATURES, **tspmeta_features, **ubc_features}
-        return features
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        return elapsed_time, features
 
     def _calculate_tspmeta_features(self) -> Dict:
         try:
