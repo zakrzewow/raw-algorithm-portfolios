@@ -8,3 +8,4 @@ database/*.db
 data/TSP/CEPS_generated/*.tsp
 *.ipynb
 !smac_test.ipynb
+*.png
