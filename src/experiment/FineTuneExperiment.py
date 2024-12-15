@@ -86,8 +86,11 @@ class FineTuneExperiment(Experiment):
         epm = self._get_epm()
         times = []
         for instance in instance_set:
-            fime_tune_time, cost = self.fine_tune(epm, portfolio, instance, comment)
-            times.append(fime_tune_time)
+            try:
+                fime_tune_time, cost = self.fine_tune(epm, portfolio, instance, comment)
+                times.append(fime_tune_time)
+            except Exception as e:
+                logger.error(f"Error in fine-tuning: {e}")
         logger.info(f"Fine-tuning time: {pd.Series(times).describe()}")
 
     def fine_tune(self, epm, portfolio: Portfolio, instance: Instance, comment=""):
