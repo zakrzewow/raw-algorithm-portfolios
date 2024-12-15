@@ -16,38 +16,37 @@ if __name__ == "__main__":
         seed=0,
     )
 
-    for db in ["CEPS1.db", "CEPS2.db"]:
-        conn = sqlite3.connect(MAIN_DIR / db)
-        portfolio = pd.read_sql_query(
-            """
-        WITH portfolio AS (
-            SELECT
-                DISTINCT solver_id 
-            FROM results WHERE comment LIKE 'test%'
+    conn = sqlite3.connect(MAIN_DIR / "CEPS2.db")
+    portfolio = pd.read_sql_query(
+        """
+    WITH portfolio AS (
+        SELECT
+            DISTINCT solver_id 
+        FROM results WHERE comment LIKE 'test%'
+    )
+    SELECT solvers.* 
+    FROM solvers
+    JOIN portfolio ON solvers.id = portfolio.solver_id
+    """,
+        conn,
+    )
+    conn.close()
+
+    portfolio = [
+        Configuration(
+            TSP_LKH_Solver.CONFIGURATION_SPACE, values=config.drop(["id"]).to_dict()
         )
-        SELECT solvers.* 
-        FROM solvers
-        JOIN portfolio ON solvers.id = portfolio.solver_id
-        """,
-            conn,
-        )
-        conn.close()
+        for _, config in portfolio.iterrows()
+    ]
+    portfolio = [TSP_LKH_Solver(config) for config in portfolio]
+    portfolio = Portfolio.from_solver_list(portfolio)
 
-        portfolio = [
-            Configuration(
-                TSP_LKH_Solver.CONFIGURATION_SPACE, values=config.drop(["id"]).to_dict()
-            )
-            for _, config in portfolio.iterrows()
-        ]
-        portfolio = [TSP_LKH_Solver(config) for config in portfolio]
-        portfolio = Portfolio.from_solver_list(portfolio)
+    solver_class = TSP_LKH_Solver
+    instance_class = TSP_Instance
+    db_init(solver_class, instance_class, False)
 
-        solver_class = TSP_LKH_Solver
-        instance_class = TSP_Instance
-        db_init(solver_class, instance_class, False)
-
-        portfolio.evaluate(test_instances, comment="test1", cache=False)
-        portfolio.evaluate(test_instances, comment="test2", cache=False)
-        portfolio.evaluate(test_instances, comment="test3", cache=False)
-        portfolio.evaluate(test_instances, comment="test4", cache=False)
-        portfolio.evaluate(test_instances, comment="test5", cache=False)
+    portfolio.evaluate(test_instances, comment="test1", cache=False)
+    portfolio.evaluate(test_instances, comment="test2", cache=False)
+    portfolio.evaluate(test_instances, comment="test3", cache=False)
+    portfolio.evaluate(test_instances, comment="test4", cache=False)
+    portfolio.evaluate(test_instances, comment="test5", cache=False)
