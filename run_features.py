@@ -35,8 +35,11 @@ if __name__ == "__main__":
             future = executor.submit(_calculate_instance_features, instance)
             futures.append((instance, future))
     for instance, future in futures:
-        time, features = future.result()
-        logger.debug(f"{instance.__hash__()} features calculated (time={time:.2f})")
-        times.append(time)
-        db_insert_instance(conn, instance, features)
+        try:
+            time, features = future.result()
+            logger.debug(f"{instance.__hash__()} features calculated (time={time:.2f})")
+            times.append(time)
+            db_insert_instance(conn, instance, features)
+        except Exception:
+            pass
     logger.info(pd.Series(times).describe())
