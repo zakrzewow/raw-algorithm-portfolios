@@ -6,6 +6,6 @@ temp/*
 log/*.log
 database/*.db
 data/TSP/CEPS_generated/*.tsp
-*.ipynb
-!smac_test.ipynb
+# *.ipynb
+# !smac_test.ipynb
 *.png
