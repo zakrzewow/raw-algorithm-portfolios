@@ -24,7 +24,7 @@ if __name__ == "__main__":
 
     solver_class = TSP_LKH_Solver
     instance_class = TSP_Instance
-    db_init(solver_class, instance_class, False)
+    db_init(solver_class, instance_class, True)
     conn = db_connect()
     executor = concurrent.futures.ProcessPoolExecutor(max_workers=MAX_WORKERS)
 
