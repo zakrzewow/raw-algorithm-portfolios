@@ -17,6 +17,4 @@ if __name__ == "__main__":
         instance_class=instance_class,
     )
     best_portfolio = experiment.construct_portfolio(train_instances)
-    experiment.fine_tune_all(best_portfolio, train_instances, comment="finetune1")
-    experiment.fine_tune_all(best_portfolio, train_instances, comment="finetune2")
-    experiment.fine_tune_all(best_portfolio, train_instances, comment="finetune3")
+    experiment.fine_tune_all(best_portfolio, test_instances, comment="finetune1")
