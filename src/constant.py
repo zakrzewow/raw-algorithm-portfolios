@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 
 # seed
-SEED = os.environ.get("SEED", 0)
+SEED = int(os.environ.get("SEED", 0))
 np.random.seed(SEED)
 random.seed(SEED)
 

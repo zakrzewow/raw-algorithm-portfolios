@@ -5,7 +5,7 @@ from pathlib import Path
 from ConfigSpace import Configuration
 
 from src.configuration_space.LKH import CONFIGURATION_SPACE
-from src.constant import LKH_PATH, TEMP_DIR
+from src.constant import LKH_PATH, SEED, TEMP_DIR
 from src.instance import TSP_Instance
 from src.solver.Solver import Solver
 from src.utils import ResultWithTime
@@ -41,6 +41,7 @@ class TSP_LKH_Solver(Solver):
             f.write(f"TOTAL_TIME_LIMIT = {self.MAX_TIME}\n")
             f.write(f"STOP_AT_OPTIMUM = YES\n")
             f.write(f"RUNS = 10000\n")
+            f.write(f"SEED = {SEED}\n")
             for k, v in self.config.items():
                 f.write(f"{k} = {v}\n")
         return config_filepath

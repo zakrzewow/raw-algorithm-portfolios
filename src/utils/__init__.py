@@ -24,3 +24,6 @@ class Timer:
 class ResultWithTime:
     result: Any
     time: float
+
+    def __iter__(self):
+        return iter((self.result, self.time))

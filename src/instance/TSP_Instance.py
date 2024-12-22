@@ -213,34 +213,7 @@ class TSP_Instance(Instance):
             return {}
 
     def mutate(self) -> ResultWithTime:
-        coordinates = []
-
-        with open(self.filepath, "r") as file:
-            for line in file:
-                line = line.strip()
-
-                if not line or line.startswith(
-                    (
-                        "NAME",
-                        "TYPE",
-                        "COMMENT",
-                        "DIMENSION",
-                        "EDGE_WEIGHT_TYPE",
-                        "NODE_COORD_SECTION",
-                    )
-                ):
-                    continue
-
-                if line == "EOF":
-                    break
-
-                parts = line.split()
-                if len(parts) == 3:
-                    node, x, y = parts
-                    coordinates.append((int(node), float(x), float(y)))
-
-        df = pd.DataFrame(coordinates, columns=["node", "X", "Y"]).set_index("node")
-
+        df = self._read_file_to_df()
         x_min, x_max = df["X"].min(), df["X"].max()
         y_min, y_max = df["Y"].min(), df["Y"].max()
 
@@ -272,9 +245,39 @@ class TSP_Instance(Instance):
                 file.write(f"{node} {x:.0f} {y:.0f}\n")
             file.write("EOF\n")
         instance = TSP_Instance(out_filepath, 0)
-        result_with_time = instance._get_optimum_with_concorde()
-        instance.optimum = result_with_time.result
-        return ResultWithTime(instance, result_with_time.time)
+        optimum, time = instance._get_optimum_with_concorde()
+        instance.optimum = optimum
+        return ResultWithTime(instance, time)
+
+    def _read_file_to_df(self) -> pd.DataFrame:
+        coordinates = []
+
+        with open(self.filepath, "r") as file:
+            for line in file:
+                line = line.strip()
+
+                if not line or line.startswith(
+                    (
+                        "NAME",
+                        "TYPE",
+                        "COMMENT",
+                        "DIMENSION",
+                        "EDGE_WEIGHT_TYPE",
+                        "NODE_COORD_SECTION",
+                    )
+                ):
+                    continue
+
+                if line == "EOF":
+                    break
+
+                parts = line.split()
+                if len(parts) == 3:
+                    node, x, y = parts
+                    coordinates.append((int(node), float(x), float(y)))
+
+        df = pd.DataFrame(coordinates, columns=["node", "X", "Y"]).set_index("node")
+        return df
 
     def _get_optimum_with_concorde(self) -> ResultWithTime:
         if IS_WINDOWS:
@@ -306,3 +309,11 @@ class TSP_Instance(Instance):
         except Exception as e:
             logger.error(f"[{self}] error calculating optimum with concorde: {e}")
             return ResultWithTime(0.0, 100.0)
+
+    def plot(self):
+        import matplotlib.pyplot as plt
+
+        fig, ax = plt.subplots(figsize=(6, 6))
+        df = self._read_file_to_df()
+        plt.scatter(df["X"], df["Y"], s=2)
+        plt.show()
