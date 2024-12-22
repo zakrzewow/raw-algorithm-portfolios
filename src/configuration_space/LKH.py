@@ -1,7 +1,9 @@
 from ConfigSpace import Categorical, ConfigurationSpace, Float, Integer
 
+from src.constant import SEED
+
 CONFIGURATION_SPACE = ConfigurationSpace(
-    seed=0,
+    seed=SEED,
     space=[
         Integer(
             name="ASCENT_CANDIDATES",

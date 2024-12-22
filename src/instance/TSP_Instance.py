@@ -1,10 +1,7 @@
-import json
 import os
 import subprocess
 import tempfile
-import time
 from pathlib import Path
-from typing import Dict, Tuple
 
 import numpy as np
 import pandas as pd
@@ -16,8 +13,10 @@ from src.constant import (
     TEMP_DIR,
     UBC_TSP_FEATURE_PATH,
 )
-from src.instance import Instance, InstanceSet
+from src.database import DB
+from src.instance.Instance import Instance
 from src.log import logger
+from src.utils import ResultWithTime, Timer
 
 
 class TSP_Instance(Instance):
@@ -139,24 +138,47 @@ class TSP_Instance(Instance):
     }
 
     def __init__(self, filepath: Path, optimum: float):
+        super().__init__()
         self.filepath = filepath
         self.optimum = optimum
 
-    def __hash__(self):
-        path_tuple = self.filepath.parts
-        data_idx = path_tuple.index("data")
-        return "/".join(path_tuple[data_idx:])
+    def __repr__(self):
+        filepath = self._get_short_filepath()
+        str_ = f"TSP_Instance(filepath={filepath})"
+        return str_
 
-    def calculate_features(self) -> Tuple[float, Dict]:
-        start_time = time.time()
-        tspmeta_features = self._calculate_tspmeta_features()
-        ubc_features = self._calculate_ubc_features()
-        features = {**self.FEATURES, **tspmeta_features, **ubc_features}
-        end_time = time.time()
-        elapsed_time = end_time - start_time
-        return elapsed_time, features
+    def to_dict(self) -> dict:
+        return {
+            "filepath": self._get_short_filepath(),
+            "optimum": self.optimum,
+            **self.features,
+        }
 
-    def _calculate_tspmeta_features(self) -> Dict:
+    def _get_short_filepath(self) -> str:
+        path_parts = self.filepath.parts
+        data_dir_parts = DATA_DIR.parts
+        filepath = "/".join(path_parts[len(data_dir_parts) :])
+        return filepath
+
+    @classmethod
+    def from_db(cls, id_: str) -> "TSP_Instance":
+        dict_ = DB().select_id(DB.SCHEMA.INSTANCES, id_)
+        filepath = DATA_DIR / dict_["filepath"]
+        optimum = dict_["optimum"]
+        instance = cls(filepath, optimum)
+        del dict_["filepath"]
+        del dict_["optimum"]
+        instance.features = dict_
+        return instance
+
+    def calculate_features(self) -> ResultWithTime:
+        with Timer() as timer:
+            tspmeta_features = self._calculate_tspmeta_features()
+            ubc_features = self._calculate_ubc_features()
+            features = {**self.FEATURES, **tspmeta_features, **ubc_features}
+        return ResultWithTime(features, timer.elapsed_time)
+
+    def _calculate_tspmeta_features(self) -> dict:
         try:
             from rpy2.robjects.packages import importr
 
@@ -166,10 +188,10 @@ class TSP_Instance(Instance):
             features = {name: features[i][0] for i, name in enumerate(features.names)}
             return features
         except Exception as e:
-            logger.error(f"Error calculating tspmeta features: {e}")
+            logger.error(f"[{self}] error calculating tspmeta features: {e}")
             return {}
 
-    def _calculate_ubc_features(self) -> Dict:
+    def _calculate_ubc_features(self) -> dict:
         if IS_WINDOWS:
             return {}
 
@@ -187,10 +209,10 @@ class TSP_Instance(Instance):
             feature_dict = {header[i]: float(values[i]) for i in range(len(header))}
             return feature_dict
         except Exception as e:
-            logger.error(f"Error calculating UBC features: {e}")
+            logger.error(f"[{self}] error calculating UBC features: {e}")
             return {}
 
-    def mutate(self) -> Tuple["TSP_Instance", float]:
+    def mutate(self) -> ResultWithTime:
         coordinates = []
 
         with open(self.filepath, "r") as file:
@@ -241,7 +263,7 @@ class TSP_Instance(Instance):
         out_filepath = dir_ / f"{idx}.tsp"
 
         with open(out_filepath, "w") as file:
-            file.write(f"NAME : GENERATED_{idx}\n")
+            file.write(f"NAME : MUTATED[{self}]\n")
             file.write(f"TYPE : TSP\n")
             file.write(f"DIMENSION : {df.shape[0]}\n")
             file.write(f"EDGE_WEIGHT_TYPE : EUC_2D\n")
@@ -250,31 +272,29 @@ class TSP_Instance(Instance):
                 file.write(f"{node} {x:.0f} {y:.0f}\n")
             file.write("EOF\n")
         instance = TSP_Instance(out_filepath, 0)
-        optimum, time = instance._get_optimum_with_concorde()
-        instance.optimum = optimum
-        return instance, time
+        result_with_time = instance._get_optimum_with_concorde()
+        instance.optimum = result_with_time.result
+        return ResultWithTime(instance, result_with_time.time)
 
-    def _get_optimum_with_concorde(self) -> Tuple[float, float]:
+    def _get_optimum_with_concorde(self) -> ResultWithTime:
         if IS_WINDOWS:
-            return 0.0, 100.0
+            return ResultWithTime(0.0, 100.0)
 
         try:
             temp_dir = tempfile.TemporaryDirectory(dir=TEMP_DIR)
             old_cwd = os.getcwd()
             os.chdir(temp_dir.name)
 
-            start_time = time.time()
-            result = subprocess.run(
-                [CONCORDE_PATH, "-x", self.filepath],
-                capture_output=True,
-                text=True,
-            )
-            end_time = time.time()
+            with Timer() as timer:
+                result = subprocess.run(
+                    [CONCORDE_PATH, "-x", self.filepath],
+                    capture_output=True,
+                    text=True,
+                )
 
-            os.chdir(old_cwd)
-            temp_dir.cleanup()
+                os.chdir(old_cwd)
+                temp_dir.cleanup()
 
-            elapsed_time = end_time - start_time
             optimum = None
             for line in result.stdout.splitlines():
                 if "Optimal Solution:" in line:
@@ -282,37 +302,7 @@ class TSP_Instance(Instance):
                     break
             if optimum is None:
                 raise Exception("Optimum not found")
-            return optimum, elapsed_time
+            return ResultWithTime(optimum, timer.elapsed_time)
         except Exception as e:
-            logger.error(f"Error calculating optimum with concorde: {e}")
-            return 0.0, 100.0
-
-
-class TSP_InstanceSet(InstanceSet):
-    def __init__(self):
-        super().__init__()
-
-    @classmethod
-    def train_test_from_index_file(
-        cls,
-        filepath: Path,
-        train_size: int,
-        seed: int = 0,
-    ) -> Tuple["TSP_InstanceSet", "TSP_InstanceSet"]:
-        train_instances = cls()
-        test_instances = cls()
-
-        with open(filepath) as f:
-            index = json.load(f)
-
-        instances = []
-        for k, v in index.items():
-            filepath = DATA_DIR / Path(k)
-            instance = TSP_Instance(filepath, v)
-            instances.append(instance)
-
-        np.random.seed(seed)
-        np.random.shuffle(instances)
-        train_instances.extend(instances[:train_size])
-        test_instances.extend(instances[train_size:])
-        return train_instances, test_instances
+            logger.error(f"[{self}] error calculating optimum with concorde: {e}")
+            return ResultWithTime(0.0, 100.0)
