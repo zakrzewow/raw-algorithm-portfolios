@@ -8,7 +8,6 @@ from src.configuration_space.LKH import CONFIGURATION_SPACE
 from src.constant import LKH_PATH, SEED, TEMP_DIR
 from src.instance import TSP_Instance
 from src.solver.Solver import Solver
-from src.utils import ResultWithTime
 
 
 class TSP_LKH_Solver(Solver):
@@ -19,18 +18,19 @@ class TSP_LKH_Solver(Solver):
     def __init__(self, config: Configuration = None):
         super().__init__(config)
 
-    def solve(self, instance: TSP_Instance) -> ResultWithTime:
-        config_filepath = self._to_config_file(instance)
+    @classmethod
+    def _solve(cls, solver: "TSP_LKH_Solver", instance: TSP_Instance) -> Solver.Result:
+        config_filepath = solver._to_config_file(instance)
         result = subprocess.run(
             [LKH_PATH, config_filepath],
             capture_output=True,
             text=True,
             stdin=subprocess.DEVNULL,
         )
-        time = self._parse_result(result)
-        cost = time if time < self.MAX_TIME else time * 10
-        self._remove_config_file(config_filepath)
-        return ResultWithTime(cost, time)
+        time = solver._parse_result(result)
+        cost = time if time < solver.MAX_TIME else time * 10
+        solver._remove_config_file(config_filepath)
+        return Solver.Result(solver, instance, cost, time)
 
     def _to_config_file(self, instance: TSP_Instance) -> Path:
         config_filepath = TEMP_DIR / f"config_{os.getpid()}.par"

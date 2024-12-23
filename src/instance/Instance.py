@@ -1,6 +1,9 @@
 import copy
 from abc import ABC, abstractmethod
 
+import numpy as np
+
+from src.constant import SEED
 from src.database import DB
 from src.log import logger
 from src.utils import ResultWithTime, hash_str
@@ -11,6 +14,7 @@ class Instance(ABC):
 
     def __init__(self):
         self.features = {}
+        self._rng = np.random.default_rng(SEED)
 
     def __eq__(self, other):
         return hash(self) == hash(other)
@@ -32,17 +36,17 @@ class Instance(ABC):
     def log(self):
         logger.debug(self.__repr__())
 
+    @classmethod
+    @abstractmethod
+    def from_db(cls, id_: str) -> "Instance":
+        pass
+
     def to_db(self):
         DB().insert(DB.SCHEMA.INSTANCES, self.id(), self.to_dict())
         pass
 
     @abstractmethod
     def to_dict(self) -> dict:
-        pass
-
-    @classmethod
-    @abstractmethod
-    def from_db(cls, id_: str) -> "Instance":
         pass
 
     @abstractmethod
@@ -52,3 +56,7 @@ class Instance(ABC):
     @abstractmethod
     def mutate(self) -> ResultWithTime:
         pass
+
+    @property
+    def features_calculated(self):
+        return len(self.features) > 0

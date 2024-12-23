@@ -1,3 +1,4 @@
+import json
 import os
 import subprocess
 import tempfile
@@ -10,11 +11,13 @@ from src.constant import (
     CONCORDE_PATH,
     DATA_DIR,
     IS_WINDOWS,
+    SEED,
     TEMP_DIR,
     UBC_TSP_FEATURE_PATH,
 )
 from src.database import DB
 from src.instance.Instance import Instance
+from src.instance.InstanceList import InstanceList
 from src.log import logger
 from src.utils import ResultWithTime, Timer
 
@@ -176,6 +179,7 @@ class TSP_Instance(Instance):
             tspmeta_features = self._calculate_tspmeta_features()
             ubc_features = self._calculate_ubc_features()
             features = {**self.FEATURES, **tspmeta_features, **ubc_features}
+        self.features = features
         return ResultWithTime(features, timer.elapsed_time)
 
     def _calculate_tspmeta_features(self) -> dict:
@@ -217,17 +221,17 @@ class TSP_Instance(Instance):
         x_min, x_max = df["X"].min(), df["X"].max()
         y_min, y_max = df["Y"].min(), df["Y"].max()
 
-        do_shift = np.random.binomial(1, 0.9, size=df.shape[0])
-        df.loc[do_shift == 1, "X"] += np.random.normal(
+        do_shift = self._rng.binomial(1, 0.9, size=df.shape[0])
+        df.loc[do_shift == 1, "X"] += self._rng.normal(
             0, 0.025 * (x_max - x_min), size=(do_shift == 1).sum()
         ).round(0)
-        df.loc[do_shift == 1, "Y"] += np.random.normal(
+        df.loc[do_shift == 1, "Y"] += self._rng.normal(
             0, 0.025 * (y_max - y_min), size=(do_shift == 1).sum()
         ).round(0)
-        df.loc[do_shift == 0, "X"] = np.random.uniform(
+        df.loc[do_shift == 0, "X"] = self._rng.uniform(
             x_min, x_max, size=(do_shift == 0).sum()
         ).round(0)
-        df.loc[do_shift == 0, "Y"] = np.random.uniform(
+        df.loc[do_shift == 0, "Y"] = self._rng.uniform(
             y_min, y_max, size=(do_shift == 0).sum()
         ).round(0)
 
@@ -317,3 +321,26 @@ class TSP_Instance(Instance):
         df = self._read_file_to_df()
         plt.scatter(df["X"], df["Y"], s=2)
         plt.show()
+
+
+def TSP_train_test_from_index_file(
+    filepath: Path,
+    train_size: int,
+) -> tuple[InstanceList, InstanceList]:
+    train_instances = InstanceList()
+    test_instances = InstanceList()
+
+    with open(filepath) as f:
+        index = json.load(f)
+
+    instances = []
+    for k, v in index.items():
+        filepath = DATA_DIR / Path(k)
+        instance = TSP_Instance(filepath, v)
+        instances.append(instance)
+
+    rng = np.random.default_rng(SEED)
+    rng.shuffle(instances)
+    train_instances.extend(instances[:train_size])
+    test_instances.extend(instances[train_size:])
+    return train_instances, test_instances

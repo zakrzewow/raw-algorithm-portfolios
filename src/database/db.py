@@ -10,6 +10,7 @@ class DB:
     class SCHEMA(Enum):
         SOLVERS = "solvers"
         INSTANCES = "instances"
+        RESULTS = "results"
 
     def __init__(self, db_path: str = DB_PATH):
         self._conn = sqlite3.connect(db_path, isolation_level=None)
@@ -92,9 +93,13 @@ class DB:
         return values
 
     def select_id(self, table: "DB.SCHEMA", id_: str) -> dict:
+        if not self._table_exists(table):
+            return {}
         cursor = self._conn.cursor()
         cursor.execute(f"SELECT * FROM {table.value} WHERE id = ?", (id_,))
         cols = [description[0] for description in cursor.description]
         values = cursor.fetchone()
         cursor.close()
+        if values is None:
+            return {}
         return dict(zip(cols, values))
