@@ -67,7 +67,9 @@ class Portfolio(list):
             self,
             portfolio: "Portfolio",
             instance_list: InstanceList,
+            prefix: str = "",
         ):
+            self.prefix = prefix
             shape = (instance_list.size, portfolio.size)
             self._costs = np.zeros(shape)
             self.time = 0.0
@@ -78,7 +80,7 @@ class Portfolio(list):
                     self.instance_sover_to_idx[key] = (i, j)
 
         def __repr__(self):
-            str_ = f"Portfolio.Result(cost={self.cost:.2f}, time={self.time:.2f})"
+            str_ = f"Portfolio.Result(prefix={self.prefix}, cost={self.cost:.2f}, time={self.time:.2f})"
             return str_
 
         def log(self):
@@ -102,8 +104,11 @@ class Portfolio(list):
         cache: bool = True,
         estimator: BaseEstimator = None,
     ) -> Result:
+        logger.debug(f"Portfolio.evaluate({prefix})")
+        self.log()
+
         executor = concurrent.futures.ProcessPoolExecutor(max_workers=MAX_WORKERS)
-        result = self.Result(self, instance_list)
+        result = self.Result(self, instance_list, prefix=prefix)
         futures = []
         for instance in instance_list:
             for solver in self:
@@ -119,7 +124,7 @@ class Portfolio(list):
 
         for instance, solver, future in futures:
             try:
-                solver_result = future.result(timeout=solver.MAX_TIME + 5)
+                solver_result = future.result(timeout=solver.MAX_TIME + 10)
             except concurrent.futures.TimeoutError:
                 future.cancel()
                 solver_result = Solver.Result.error_instance(prefix, solver, instance)
@@ -128,4 +133,5 @@ class Portfolio(list):
             result.update(solver_result)
 
         executor.shutdown(wait=False, cancel_futures=True)
+        result.log()
         return result

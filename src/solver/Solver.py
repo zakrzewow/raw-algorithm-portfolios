@@ -216,8 +216,9 @@ class Solver(ABC):
         @staticmethod
         def _future_done_callback(future: Future["Solver.Result"]):
             result = future.result()
-            result.log()
-            result.to_db()
+            if not future.cancelled():
+                result.log()
+                result.to_db()
 
     def solve(
         self,
@@ -228,15 +229,14 @@ class Solver(ABC):
         estimator: BaseEstimator = None,
         executor: ProcessPoolExecutor = None,
     ) -> Future:
-        logger.debug(f"{self} {instance} solving...")
+        logger.debug(f"solve(prefix={prefix}, solver={self}, instance={instance})")
         features_time = 0.0
 
         # instance features
         if calculate_features and not instance.features_calculated:
-            logger.debug(f"{instance} calculating features...")
+            logger.debug(f"calculate_features(instance={instance})")
             result_with_time = instance.calculate_features()
             features_time += result_with_time.time
-            logger.debug(f"{instance} features calculated {result_with_time}")
 
         # saving to database
         instance.to_db()
