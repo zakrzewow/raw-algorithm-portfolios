@@ -1,3 +1,4 @@
+import copy
 from typing import Iterable
 
 from src.instance.Instance import Instance
@@ -18,6 +19,9 @@ class InstanceList(list):
         str_ = super().__repr__()
         str_ = f"InstanceList(size={self.size}){str_}"
         return str_
+
+    def copy(self) -> "InstanceList":
+        return copy.deepcopy(self)
 
     def log(self):
         logger.debug(self.__repr__())

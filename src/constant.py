@@ -21,7 +21,7 @@ TEMP_DIR = MAIN_DIR / "temp"
 # environment
 JOB_NAME = os.environ.get("SLURM_JOB_NAME", "test")
 JOB_ID = os.environ.get("SLURM_JOB_ID", dt.datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))
-MAX_WORKERS = int(os.environ.get("SLURM_CPUS_PER_TASK", 5) - 1)
+MAX_WORKERS = int(os.environ.get("SLURM_CPUS_PER_TASK", 6) - 1)
 R_HOME = Path.home() / "miniconda3" / "envs" / "SMAC" / "lib" / "R"
 
 # TSP

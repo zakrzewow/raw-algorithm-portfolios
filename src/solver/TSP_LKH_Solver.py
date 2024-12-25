@@ -19,7 +19,13 @@ class TSP_LKH_Solver(Solver):
         super().__init__(config)
 
     @classmethod
-    def _solve(cls, solver: "TSP_LKH_Solver", instance: TSP_Instance) -> Solver.Result:
+    def _solve(
+        cls,
+        prefix: str,
+        solver: "TSP_LKH_Solver",
+        instance: TSP_Instance,
+        features_time: float = 0.0,
+    ) -> Solver.Result:
         config_filepath = solver._to_config_file(instance)
         result = subprocess.run(
             [LKH_PATH, config_filepath],
@@ -29,8 +35,9 @@ class TSP_LKH_Solver(Solver):
         )
         time = solver._parse_result(result)
         cost = time if time < solver.MAX_TIME else time * 10
+        time += features_time
         solver._remove_config_file(config_filepath)
-        return Solver.Result(solver, instance, cost, time)
+        return Solver.Result(prefix, solver, instance, cost, time)
 
     def _to_config_file(self, instance: TSP_Instance) -> Path:
         config_filepath = TEMP_DIR / f"config_{os.getpid()}.par"

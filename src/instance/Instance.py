@@ -60,3 +60,6 @@ class Instance(ABC):
     @property
     def features_calculated(self):
         return len(self.features) > 0
+
+    def get_array(self) -> np.array:
+        return np.array(list(self.features.values()))

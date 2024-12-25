@@ -2,7 +2,9 @@ import copy
 from abc import ABC, abstractmethod
 from concurrent.futures import Future, ProcessPoolExecutor
 
+import numpy as np
 from ConfigSpace import Configuration, ConfigurationSpace
+from sklearn.base import BaseEstimator
 
 from src.database import DB
 from src.instance.Instance import Instance
@@ -57,57 +59,153 @@ class Solver(ABC):
         dict_ = dict(zip(self.config.keys(), self.config.get_array()))
         return dict_
 
+    def get_array(self) -> np.array:
+        return self.config.get_array()
+
     class Result:
         def __init__(
             self,
+            prefix: str,
             solver: "Solver",
             instance: Instance,
             cost: float,
             time: float,
             cached: bool = False,
+            surrogate: bool = False,
+            error: bool = False,
         ):
+            self.prefix = prefix
             self.solver = solver
             self.instance = instance
             self.cost = cost
             self.time = time
             self.cached = cached
+            self.surrogate = surrogate
+            self.error = error
 
         def __repr__(self):
-            str_ = f"Solver.Result(solver={self.solver}, instance={self.instance}, cost={self.cost:.2f}, time={self.time:.2f}, cached={self.cached})"
+            str_ = (
+                f"Solver.Result("
+                f"prefix={self.prefix}, "
+                f"solver={self.solver}, "
+                f"instance={self.instance}, "
+                f"cost={self.cost:.2f}, "
+                f"time={self.time:.2f}, "
+                f"cached={self.cached}, "
+                f"surrogate={self.surrogate}, "
+                f"error={self.error})"
+            )
             return str_
 
-        def id(self) -> str:
+        def evaluation_id(self) -> str:
             return f"{self.solver.id()}_{self.instance.id()}"
+
+        def result_id(self) -> str:
+            return f"{self.prefix}_{self.evaluation_id()}"
 
         def log(self):
             logger.debug(self.__repr__())
 
         @classmethod
-        def from_db(cls, solver: "Solver", instance: "Instance") -> "Solver.Result":
+        def from_db(
+            cls,
+            prefix: str,
+            solver: "Solver",
+            instance: "Instance",
+            features_time: float = 0.0,
+        ) -> "Solver.Result":
             id_ = f"{solver.id()}_{instance.id()}"
-            dict_ = DB().select_id(DB.SCHEMA.RESULTS, id_)
+            dict_ = DB().select_id(DB.SCHEMA.EVALUATIONS, id_)
             if dict_:
                 result = cls(
+                    prefix=prefix,
                     solver=solver,
                     instance=instance,
                     cost=dict_["cost"],
-                    time=0,
+                    time=features_time,
                     cached=True,
+                    surrogate=False,
+                    error=False,
                 )
                 return result
             return None
 
         def to_db(self):
-            DB().insert(DB.SCHEMA.RESULTS, self.id(), self.to_dict())
-            pass
+            if not self.cached and not self.surrogate:
+                DB().insert(
+                    DB.SCHEMA.EVALUATIONS,
+                    self.evaluation_id(),
+                    self.to_dict_evaluation(),
+                )
+            DB().insert(
+                DB.SCHEMA.RESULTS,
+                self.result_id(),
+                self.to_dict_result(),
+            )
 
-        def to_dict(self) -> dict:
+        def to_dict_evaluation(self) -> dict:
             dict_ = {
                 "solver_id": self.solver.id(),
                 "instance_id": self.instance.id(),
                 "cost": self.cost,
             }
             return dict_
+
+        def to_dict_result(self) -> dict:
+            dict_ = {
+                "prefix": self.prefix,
+                "solver_id": self.solver.id(),
+                "instance_id": self.instance.id(),
+                "cost": self.cost,
+                "time": self.time,
+                "cached": self.cached,
+                "surrogate": self.surrogate,
+                "error": self.error,
+            }
+            return dict_
+
+        @classmethod
+        def predict_with_estimator(
+            cls,
+            prefix: str,
+            solver: "Solver",
+            instance: Instance,
+            estimator: BaseEstimator,
+            features_time: float = 0.0,
+        ) -> "Solver.Result":
+            X = np.concatenate([solver.get_array(), instance.get_array()])
+            X = X.reshape(1, -1)
+            cost = estimator.predict(X)[0]
+            result = cls(
+                prefix=prefix,
+                solver=solver,
+                instance=instance,
+                cost=cost,
+                time=features_time,
+                cached=False,
+                surrogate=True,
+                error=False,
+            )
+            return result
+
+        @classmethod
+        def error_instance(
+            cls,
+            prefix: str,
+            solver: "Solver",
+            instance: Instance,
+        ) -> "Solver.Result":
+            result = cls(
+                prefix=prefix,
+                solver=solver,
+                instance=instance,
+                cost=solver.MAX_COST,
+                time=solver.MAX_TIME,
+                cached=False,
+                surrogate=False,
+                error=True,
+            )
+            return result
 
         def as_future(self) -> Future["Solver.Result"]:
             future = Future()
@@ -124,18 +222,20 @@ class Solver(ABC):
     def solve(
         self,
         instance: Instance,
-        executor: ProcessPoolExecutor = None,
-        cache: bool = True,
+        prefix: str,
         calculate_features: bool = False,
+        cache: bool = True,
+        estimator: BaseEstimator = None,
+        executor: ProcessPoolExecutor = None,
     ) -> Future:
         logger.debug(f"{self} {instance} solving...")
-        time = 0.0
+        features_time = 0.0
 
         # instance features
         if calculate_features and not instance.features_calculated:
             logger.debug(f"{instance} calculating features...")
             result_with_time = instance.calculate_features()
-            time += result_with_time.time
+            features_time += result_with_time.time
             logger.debug(f"{instance} features calculated {result_with_time}")
 
         # saving to database
@@ -143,20 +243,39 @@ class Solver(ABC):
         self.to_db()
 
         # caching
-        if cache and (result := self.Result.from_db(self, instance)) is not None:
+        if cache:
+            result = self.Result.from_db(prefix, self, instance, features_time)
+            if result is not None:
+                return result.as_future()
+
+        # surrogate estimation
+        if estimator is not None:
+            result = self.Result.predict_with_estimator(
+                prefix,
+                self,
+                instance,
+                estimator,
+                features_time,
+            )
             return result.as_future()
 
         # non-paralell
         if executor is None:
-            result = self._solve(self, instance)
+            result = self._solve(prefix, self, instance, features_time)
             return result.as_future()
 
         # paralell
-        future = executor.submit(self._solve, self, instance)
+        future = executor.submit(self._solve, prefix, self, instance, features_time)
         future.add_done_callback(self.Result._future_done_callback)
         return future
 
     @classmethod
     @abstractmethod
-    def _solve(cls, solver: "Solver", instance: Instance) -> "Solver.Result":
+    def _solve(
+        cls,
+        prefix: str,
+        solver: "Solver",
+        instance: Instance,
+        features_time: float = 0.0,
+    ) -> "Solver.Result":
         pass

@@ -11,6 +11,7 @@ class DB:
         SOLVERS = "solvers"
         INSTANCES = "instances"
         RESULTS = "results"
+        EVALUATIONS = "evaluations"
 
     def __init__(self, db_path: str = DB_PATH):
         self._conn = sqlite3.connect(db_path, isolation_level=None)
