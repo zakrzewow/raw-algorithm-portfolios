@@ -1,11 +1,8 @@
-import os
-
-os.environ["SEED"] = "0"
-
-from concurrent.futures import ProcessPoolExecutor
-
+from src.aac.AAC import AAC
 from src.constant import DATA_DIR
+from src.instance.InstanceList import InstanceList
 from src.instance.TSP_Instance import TSP_train_test_from_index_file
+from src.solver.Portfolio import Portfolio
 from src.solver.TSP_LKH_Solver import TSP_LKH_Solver
 
 if __name__ == "__main__":
@@ -13,15 +10,20 @@ if __name__ == "__main__":
         filepath=DATA_DIR / "TSP" / "CEPS_benchmark" / "index.json",
         train_size=5,
     )
-    solver = TSP_LKH_Solver()
-    executor = ProcessPoolExecutor(max_workers=5)
+    test_instances = InstanceList.from_iterable(test_instances[:95])
+    portfolio = Portfolio.from_solver_class(TSP_LKH_Solver, size=1)
 
-    futures = []
-    for instance in train_instances:
-        futures.append(solver.solve(instance, executor))
+    aac = AAC(
+        prefix="config",
+        portfolio=portfolio,
+        t_c=3600,
+        calculate_features=True,
+    )
+    aac.configure(train_instances)
 
-    for future in futures:
-        future.result()
-
-    for instance in train_instances:
-        solver.solve(instance, executor, cache=True)
+    portfolio.evaluate(
+        InstanceList.from_iterable(test_instances),
+        prefix="test",
+        calculate_features=False,
+        cache=False,
+    )

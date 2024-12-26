@@ -62,6 +62,17 @@ class Portfolio(list):
                 configuration_space.add(v)
         return configuration_space
 
+    def get_configuration(self, i: int = None) -> Configuration:
+        configuration_space = self.get_configuration_space(i=i)
+        config = {}
+        for idx, solver in enumerate(self):
+            if i is not None and idx != i:
+                continue
+            for k, v in solver.config.items():
+                config[f"{idx}__{k}"] = v
+        config = Configuration(configuration_space, values=config)
+        return config
+
     class Result:
         def __init__(
             self,
@@ -72,7 +83,7 @@ class Portfolio(list):
             self.prefix = prefix
             shape = (instance_list.size, portfolio.size)
             self._costs = np.zeros(shape)
-            self.time = 0.0
+            self.time = np.zeros(portfolio.size)
             self.instance_sover_to_idx = {}
             for i, instance in enumerate(instance_list):
                 for j, solver in enumerate(portfolio):
@@ -80,7 +91,8 @@ class Portfolio(list):
                     self.instance_sover_to_idx[key] = (i, j)
 
         def __repr__(self):
-            str_ = f"Portfolio.Result(prefix={self.prefix}, cost={self.cost:.2f}, time={self.time:.2f})"
+            time_formatted = np.array2string(self.time, precision=2, floatmode="fixed")
+            str_ = f"Portfolio.Result(prefix={self.prefix}, cost={self.cost:.2f}, time={time_formatted})"
             return str_
 
         def log(self):
@@ -94,7 +106,7 @@ class Portfolio(list):
             key = (result.instance.id(), result.solver.id())
             i, j = self.instance_sover_to_idx[key]
             self._costs[i, j] = result.cost
-            self.time += result.time
+            self.time[j] += result.time
 
     def evaluate(
         self,
