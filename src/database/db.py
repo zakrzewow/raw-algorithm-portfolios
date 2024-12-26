@@ -104,3 +104,17 @@ class DB:
         if values is None:
             return {}
         return dict(zip(cols, values))
+
+    def get_lowest_cost(self, instance_id: str) -> float:
+        cursor = self._conn.cursor()
+        cursor.execute(
+            f"""
+            SELECT MIN(cost)
+            FROM {self.SCHEMA.EVALUATIONS.value}
+            WHERE instance_id = ?
+            """,
+            (instance_id,),
+        )
+        cost = cursor.fetchone()
+        cursor.close()
+        return cost[0] if cost is not None else None

@@ -14,12 +14,15 @@ if __name__ == "__main__":
     portfolio = Portfolio.from_solver_class(TSP_LKH_Solver, size=1)
 
     aac = AAC(
-        prefix="config",
         portfolio=portfolio,
-        t_c=3600,
+        instance_list=train_instances,
+        prefix="config",
+        t_c=7200,
         calculate_features=True,
     )
-    aac.configure(train_instances)
+
+    for _ in aac.configure():
+        pass
 
     portfolio.evaluate(
         InstanceList.from_iterable(test_instances),
