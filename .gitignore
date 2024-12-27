@@ -6,4 +6,4 @@ temp/*
 log/*.log
 database/*.db
 data/TSP/CEPS_generated/*.tsp
-*.png
+_archive/*

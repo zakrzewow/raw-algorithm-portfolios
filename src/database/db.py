@@ -1,6 +1,8 @@
 import sqlite3
 from enum import Enum
 
+import pandas as pd
+
 from src.constant import DATABASE_DIR, JOB_ID, JOB_NAME
 
 DB_PATH = DATABASE_DIR / f"{JOB_NAME}_{JOB_ID}.db"
@@ -13,9 +15,11 @@ class DB:
         RESULTS = "results"
         EVALUATIONS = "evaluations"
 
+        def __str__(self):
+            return self.value
+
     def __init__(self, db_path: str = DB_PATH):
         self._conn = sqlite3.connect(db_path, isolation_level=None)
-        pass
 
     def __del__(self):
         self._conn.close()
@@ -58,14 +62,14 @@ class DB:
             q = f"{k} {type_}"
             query.append(q)
         query = ", ".join(query)
-        query = f"CREATE TABLE {table.value} ({query})"
+        query = f"CREATE TABLE {table} ({query})"
         self._conn.execute(query)
 
     def _row_exists(self, table: "DB.SCHEMA", id_: str = None) -> bool:
         if id_ is None:
             return False
         cursor = self._conn.cursor()
-        cursor.execute(f"SELECT 1 FROM {table.value} WHERE id = ?", (id_,))
+        cursor.execute(f"SELECT 1 FROM {table} WHERE id = ?", (id_,))
         exists = cursor.fetchone() is not None
         cursor.close()
         return exists
@@ -83,7 +87,7 @@ class DB:
         n = len(columns)
         cols_str = ", ".join(columns)
         question_marks = ", ".join(["?"] * n)
-        query = f"INSERT INTO {table.value} ({cols_str}) VALUES ({question_marks})"
+        query = f"INSERT INTO {table} ({cols_str}) VALUES ({question_marks})"
         return query
 
     def _get_insert_values(self, id_: str = None, data: dict = {}) -> list:
@@ -97,7 +101,7 @@ class DB:
         if not self._table_exists(table):
             return {}
         cursor = self._conn.cursor()
-        cursor.execute(f"SELECT * FROM {table.value} WHERE id = ?", (id_,))
+        cursor.execute(f"SELECT * FROM {table} WHERE id = ?", (id_,))
         cols = [description[0] for description in cursor.description]
         values = cursor.fetchone()
         cursor.close()
@@ -105,16 +109,5 @@ class DB:
             return {}
         return dict(zip(cols, values))
 
-    def get_lowest_cost(self, instance_id: str) -> float:
-        cursor = self._conn.cursor()
-        cursor.execute(
-            f"""
-            SELECT MIN(cost)
-            FROM {self.SCHEMA.EVALUATIONS.value}
-            WHERE instance_id = ?
-            """,
-            (instance_id,),
-        )
-        cost = cursor.fetchone()
-        cursor.close()
-        return cost[0] if cost is not None else None
+    def query2df(self, query: str) -> pd.DataFrame:
+        return pd.read_sql_query(query, self._conn)
