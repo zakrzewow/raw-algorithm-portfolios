@@ -285,7 +285,7 @@ class TSP_Instance(Instance):
 
     def _get_optimum_with_concorde(self) -> ResultWithTime:
         if IS_WINDOWS:
-            return ResultWithTime(0.0, 100.0)
+            return ResultWithTime(0.0, 10.0)
 
         try:
             temp_dir = tempfile.TemporaryDirectory(dir=TEMP_DIR)
@@ -312,7 +312,7 @@ class TSP_Instance(Instance):
             return ResultWithTime(optimum, timer.elapsed_time)
         except Exception as e:
             logger.error(f"[{self}] error calculating optimum with concorde: {e}")
-            return ResultWithTime(0.0, 100.0)
+            return ResultWithTime(0.0, 10.0)
 
     def plot(self):
         import matplotlib.pyplot as plt

@@ -21,6 +21,21 @@ def get_model_training_data(db: DB) -> pd.DataFrame:
     return X, y
 
 
+def get_number_of_no_timeouts(db: DB, instance_id: str, max_cost: float) -> int:
+    cursor = db._conn.cursor()
+    cursor.execute(
+        f"""
+        SELECT COUNT(*)
+        FROM {db.SCHEMA.EVALUATIONS}
+        WHERE instance_id = ? AND cost < ?
+        """,
+        (instance_id, max_cost),
+    )
+    count = cursor.fetchone()
+    cursor.close()
+    return count[0]
+
+
 def get_lowest_cost(db: DB, instance_id: str) -> float:
     cursor = db._conn.cursor()
     cursor.execute(
