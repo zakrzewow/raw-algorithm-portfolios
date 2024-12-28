@@ -3,7 +3,6 @@ from src.aac.SurrogateEstimator import Estimator1
 from src.constant import DATA_DIR
 from src.database import DB
 from src.database.queries import get_model_training_data
-from src.instance.InstanceList import InstanceList
 from src.instance.TSP_Instance import TSP_train_test_from_index_file
 from src.solver.Portfolio import Portfolio
 from src.solver.TSP_LKH_Solver import TSP_LKH_Solver
@@ -25,9 +24,6 @@ if __name__ == "__main__":
         estimator=None,
     )
 
-    # for _ in aac.configure():
-    #     pass
-
     last_model_iter = 0
 
     estimator = None
@@ -45,8 +41,20 @@ if __name__ == "__main__":
             aac.update(estimator=estimator)
 
     portfolio.evaluate(
-        InstanceList.from_iterable(test_instances),
-        prefix="test",
+        test_instances,
+        prefix="test1",
+        calculate_features=False,
+        cache=False,
+    )
+    portfolio.evaluate(
+        test_instances,
+        prefix="test2",
+        calculate_features=False,
+        cache=False,
+    )
+    portfolio.evaluate(
+        test_instances,
+        prefix="test3",
         calculate_features=False,
         cache=False,
     )
