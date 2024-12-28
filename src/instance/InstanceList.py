@@ -6,14 +6,20 @@ from src.log import logger
 
 
 class InstanceList(list):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     @classmethod
     def from_iterable(cls, instances: Iterable[Instance]) -> "InstanceList":
         instance_list = cls()
         instance_list.extend(instances)
         return instance_list
+
+    def __getitem__(self, index):
+        result = super().__getitem__(index)
+        if isinstance(index, slice):
+            return InstanceList(result)
+        return result
 
     def __repr__(self):
         str_ = super().__repr__()

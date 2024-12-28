@@ -13,14 +13,14 @@ if __name__ == "__main__":
         filepath=DATA_DIR / "TSP" / "CEPS_benchmark" / "index.json",
         train_size=5,
     )
-    test_instances = InstanceList.from_iterable(test_instances[:95])
+    test_instances = test_instances[:95]
     portfolio = Portfolio.from_solver_class(TSP_LKH_Solver, size=1)
 
     aac = AAC(
         portfolio=portfolio,
         instance_list=train_instances,
         prefix="config",
-        t_c=5400,
+        t_c=7200,
         calculate_features=True,
         estimator=None,
     )
