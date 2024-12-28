@@ -4,11 +4,11 @@ from pathlib import Path
 from typing import Generator
 
 import numpy as np
-from sklearn.base import BaseEstimator
 from smac import AlgorithmConfigurationFacade, Scenario
 from smac.initial_design import RandomInitialDesign
 from smac.runhistory.dataclasses import TrialValue
 
+from src.aac.SurrogateEstimator import SurrogateEstimator
 from src.constant import SEED, TEMP_DIR
 from src.instance.InstanceList import InstanceList
 from src.log import logger
@@ -26,19 +26,18 @@ class AAC:
         max_iter: int = None,
         i: int = None,
         calculate_features: bool = False,
-        estimator: BaseEstimator = None,
-        estimator_pct: float = 0.9,
+        estimator: SurrogateEstimator = None,
     ):
         self._portfolio = portfolio
         self._instance_list = instance_list
         self._prefix = prefix
-        self._configuration_time = self._get_configuration_time(t_c)
+        self._t_c = t_c
+        self._configuration_time = self._get_configuration_time()
         self._max_iter = max_iter
         self.iter = 1
         self._smac = self._get_smac_algorithm_configuration_facade(i)
         self._calculate_features = calculate_features
         self._estimator = estimator
-        self._estimator_pct = estimator_pct
 
     def __del__(self):
         self.__cleanup_temp_dir()
@@ -55,8 +54,8 @@ class AAC:
     def log(self):
         logger.debug(self.__repr__())
 
-    def _get_configuration_time(self, t_c: float):
-        configuration_time = np.ones(shape=(self._portfolio.size,)) * t_c
+    def _get_configuration_time(self):
+        configuration_time = np.ones(shape=(self._portfolio.size,)) * self._t_c
         return configuration_time
 
     def _get_smac_algorithm_configuration_facade(self, i: int):
@@ -111,7 +110,6 @@ class AAC:
                 calculate_features=self._calculate_features,
                 cache=True,
                 estimator=self._estimator,
-                estimator_pct=self._estimator_pct,
             )
             trial_value = TrialValue(cost=result.cost)
             self._smac.tell(trial_info, trial_value)
@@ -130,15 +128,12 @@ class AAC:
     def update(
         self,
         instance_list: InstanceList = None,
-        estimator: BaseEstimator = None,
-        estimator_pct: float = None,
+        estimator: SurrogateEstimator = None,
     ):
         if instance_list is not None:
             self._instance_list = instance_list
         if estimator is not None:
             self._estimator = estimator
-        if estimator_pct is not None:
-            self._estimator_pct = estimator_pct
 
     def _configuration_time_remains(self):
         return (self._configuration_time > 0).all() and (
@@ -157,3 +152,6 @@ class AAC:
     def _update_portfolio_with_incumbent(self):
         incumbent = self._smac.intensifier.get_incumbent()
         self._portfolio.update_solvers(incumbent)
+
+    def get_progress(self) -> float:
+        return 1 - self._configuration_time.min() / self._t_c

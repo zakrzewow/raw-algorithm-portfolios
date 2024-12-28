@@ -4,8 +4,8 @@ from concurrent.futures import Future, ProcessPoolExecutor
 
 import numpy as np
 from ConfigSpace import Configuration, ConfigurationSpace
-from sklearn.base import BaseEstimator
 
+from src.aac.SurrogateEstimator import SurrogateEstimator
 from src.database import DB
 from src.instance.Instance import Instance
 from src.log import logger
@@ -170,7 +170,7 @@ class Solver(ABC):
             prefix: str,
             solver: "Solver",
             instance: Instance,
-            estimator: BaseEstimator,
+            estimator: SurrogateEstimator,
             features_time: float = 0.0,
         ) -> "Solver.Result":
             X = np.concatenate([solver.get_array(), instance.get_array()])
@@ -226,7 +226,7 @@ class Solver(ABC):
         prefix: str,
         calculate_features: bool = False,
         cache: bool = True,
-        estimator: BaseEstimator = None,
+        estimator: SurrogateEstimator = None,
         executor: ProcessPoolExecutor = None,
     ) -> Future:
         logger.debug(f"solve(prefix={prefix}, solver={self}, instance={instance})")

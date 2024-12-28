@@ -1,3 +1,5 @@
+from abc import ABC, abstractmethod
+
 import numpy as np
 from sklearn.base import BaseEstimator, RegressorMixin, clone
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
@@ -8,7 +10,36 @@ from src.constant import MAX_WORKERS, SEED
 from src.log import logger
 
 
-class SurrogatePerformanceEstimator(BaseEstimator, RegressorMixin):
+class SurrogateEstimator(BaseEstimator, RegressorMixin, ABC):
+    _RNG = np.random.default_rng(SEED)
+
+    def __init__(self, estimator_pct: float = 0.5):
+        super().__init__()
+        self._estimator_pct = estimator_pct
+
+    @abstractmethod
+    def fit(self, X, y):
+        pass
+
+    @abstractmethod
+    def predict(self, X):
+        pass
+
+    @abstractmethod
+    def log(self):
+        pass
+
+    def set_estimator_pct(self, estimator_pct):
+        self._estimator_pct = estimator_pct
+
+    @classmethod
+    def get_or_none(cls, estimator: "SurrogateEstimator"):
+        if estimator is None:
+            return None
+        return estimator if cls._RNG.random() < estimator._estimator_pct else None
+
+
+class Estimator1(SurrogateEstimator):
     _DEFAULT_CLASSIFIER = RandomForestClassifier(
         n_estimators=200,
         class_weight="balanced",
@@ -32,10 +63,12 @@ class SurrogatePerformanceEstimator(BaseEstimator, RegressorMixin):
 
     def __init__(
         self,
-        max_cost,
+        max_cost: float,
+        estimator_pct: float = 0.5,
         classifier: BaseEstimator = None,
         regressor: BaseEstimator = None,
     ):
+        super().__init__(estimator_pct)
         self.max_cost = max_cost
         if classifier is None:
             classifier = clone(self._DEFAULT_CLASSIFIER)
@@ -75,16 +108,17 @@ class SurrogatePerformanceEstimator(BaseEstimator, RegressorMixin):
 
     def log(self):
         if not self._is_fitted_:
-            logger.debug("SurrogatePerformanceEstimator(fitted=False)")
+            logger.debug("Estimator1(fitted=False)")
         else:
             X, y = self._training_data_
             score = self.score(X, y)
             training_data_shape = X.shape
             non_timeout_training_data_shape = X[self._mask_non_timeout].shape
             logger.debug(
-                f"SurrogatePerformanceEstimator("
+                f"Estimator1("
                 f"fitted={self._is_fitted_}, "
                 f"score={score}, "
+                f"estimator_pct={self._estimator_pct}, "
                 f"training_data_shape={training_data_shape}, "
                 f"non_timeout={non_timeout_training_data_shape}"
                 f")"

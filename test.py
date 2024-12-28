@@ -1,5 +1,5 @@
 from src.aac.AAC import AAC
-from src.aac.SurrogatePerformanceEstimator import SurrogatePerformanceEstimator
+from src.aac.SurrogateEstimator import Estimator1
 from src.constant import DATA_DIR
 from src.database import DB
 from src.database.queries import get_model_training_data
@@ -20,25 +20,25 @@ if __name__ == "__main__":
         portfolio=portfolio,
         instance_list=train_instances,
         prefix="config",
-        t_c=7200,
+        t_c=5400,
         calculate_features=True,
         estimator=None,
-        estimator_pct=0.5,
     )
 
     # for _ in aac.configure():
     #     pass
 
-    first_model_iter = 50
     last_model_iter = 0
 
     estimator = None
     db = DB()
-
+    estimator_pct = 0.5
     for _ in aac.configure_iter():
-        if aac.iter >= first_model_iter and aac.iter - last_model_iter >= 5:
+        if aac.get_progress() >= 0.5 and aac.iter - last_model_iter >= 10:
             X, y = get_model_training_data(db)
-            estimator = SurrogatePerformanceEstimator(max_cost=TSP_LKH_Solver.MAX_COST)
+            estimator = Estimator1(
+                max_cost=TSP_LKH_Solver.MAX_COST, estimator_pct=estimator_pct
+            )
             estimator.fit(X, y)
             estimator.log()
             last_model_iter = aac.iter

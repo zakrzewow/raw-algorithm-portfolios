@@ -4,8 +4,8 @@ from typing import Iterable, Type
 
 import numpy as np
 from ConfigSpace import Configuration, ConfigurationSpace
-from sklearn.base import BaseEstimator
 
+from src.aac.SurrogateEstimator import SurrogateEstimator
 from src.constant import MAX_WORKERS, SEED
 from src.instance.InstanceList import InstanceList
 from src.log import logger
@@ -114,25 +114,22 @@ class Portfolio(list):
         prefix: str,
         calculate_features: bool = False,
         cache: bool = True,
-        estimator: BaseEstimator = None,
-        estimator_pct: float = 0.9,
+        estimator: SurrogateEstimator = None,
     ) -> Result:
         logger.debug(f"Portfolio.evaluate({prefix})")
         self.log()
 
         executor = concurrent.futures.ProcessPoolExecutor(max_workers=MAX_WORKERS)
-        rng = np.random.default_rng(SEED)
         result = self.Result(self, instance_list, prefix=prefix)
         futures = []
         for instance in instance_list:
             for solver in self:
-                do_use_estimator = rng.random() < estimator_pct
                 future = solver.solve(
                     instance,
                     prefix,
                     calculate_features=calculate_features,
                     cache=cache,
-                    estimator=(estimator if do_use_estimator else None),
+                    estimator=SurrogateEstimator.get_or_none(estimator),
                     executor=executor,
                 )
                 futures.append((instance, solver, future))
