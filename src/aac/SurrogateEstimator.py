@@ -15,7 +15,7 @@ class SurrogateEstimator(BaseEstimator, RegressorMixin, ABC):
 
     def __init__(self, estimator_pct: float = 0.5):
         super().__init__()
-        self._estimator_pct = estimator_pct
+        self.estimator_pct = estimator_pct
 
     @abstractmethod
     def fit(self, X, y):
@@ -30,13 +30,13 @@ class SurrogateEstimator(BaseEstimator, RegressorMixin, ABC):
         pass
 
     def set_estimator_pct(self, estimator_pct):
-        self._estimator_pct = estimator_pct
+        self.estimator_pct = estimator_pct
 
     @classmethod
     def get_or_none(cls, estimator: "SurrogateEstimator"):
         if estimator is None:
             return None
-        return estimator if cls._RNG.random() < estimator._estimator_pct else None
+        return estimator if cls._RNG.random() < estimator.estimator_pct else None
 
 
 class Estimator1(SurrogateEstimator):
@@ -99,7 +99,8 @@ class Estimator1(SurrogateEstimator):
         costs_pred = np.full(X.shape[0], self.max_cost, dtype=float)
 
         try:
-            if np.any(~is_timeout) and check_is_fitted(self.regressor):
+            if np.any(~is_timeout):
+                check_is_fitted(self.regressor)
                 costs_pred[~is_timeout] = self.regressor.predict(X[~is_timeout])
         except NotFittedError:
             pass
@@ -118,7 +119,7 @@ class Estimator1(SurrogateEstimator):
                 f"Estimator1("
                 f"fitted={self._is_fitted_}, "
                 f"score={score}, "
-                f"estimator_pct={self._estimator_pct}, "
+                f"estimator_pct={self.estimator_pct}, "
                 f"training_data_shape={training_data_shape}, "
                 f"non_timeout={non_timeout_training_data_shape}"
                 f")"
