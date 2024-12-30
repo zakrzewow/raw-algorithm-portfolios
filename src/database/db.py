@@ -5,7 +5,7 @@ import pandas as pd
 
 from src.constant import DATABASE_DIR, JOB_ID, JOB_NAME
 
-DB_PATH = DATABASE_DIR / f"{JOB_NAME}_{JOB_ID}.db"
+DB_PATH = DATABASE_DIR / f"{JOB_NAME}-{JOB_ID}.db"
 
 
 class DB:

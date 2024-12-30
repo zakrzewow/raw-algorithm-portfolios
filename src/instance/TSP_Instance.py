@@ -323,21 +323,26 @@ class TSP_Instance(Instance):
         plt.show()
 
 
+def TSP_from_index_file(filepath: Path) -> InstanceList:
+    instances = InstanceList()
+
+    with open(filepath) as f:
+        index = json.load(f)
+
+    for k, v in index.items():
+        filepath = DATA_DIR / Path(k)
+        instance = TSP_Instance(filepath, v)
+        instances.append(instance)
+    return instances
+
+
 def TSP_train_test_from_index_file(
     filepath: Path,
     train_size: int,
 ) -> tuple[InstanceList, InstanceList]:
     train_instances = InstanceList()
     test_instances = InstanceList()
-
-    with open(filepath) as f:
-        index = json.load(f)
-
-    instances = []
-    for k, v in index.items():
-        filepath = DATA_DIR / Path(k)
-        instance = TSP_Instance(filepath, v)
-        instances.append(instance)
+    instances = TSP_from_index_file(filepath)
 
     rng = np.random.default_rng(SEED)
     rng.shuffle(instances)
