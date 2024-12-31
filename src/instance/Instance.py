@@ -1,21 +1,13 @@
+import concurrent.futures
 import copy
-import signal
 from abc import ABC, abstractmethod
 
 import numpy as np
 
-from src.constant import IS_WINDOWS, SEED
+from src.constant import SEED
 from src.database import DB
 from src.log import logger
 from src.utils import ResultWithTime, hash_str
-
-
-class TimeoutException(Exception):
-    pass
-
-
-def handler(signum, frame):
-    raise TimeoutException("Timeout!")
 
 
 class Instance(ABC):
@@ -58,20 +50,22 @@ class Instance(ABC):
     def to_dict(self) -> dict:
         pass
 
-    def calculate_features(self) -> ResultWithTime:
-        if IS_WINDOWS:
+    def calculate_features(
+        self,
+        executor: concurrent.futures.ProcessPoolExecutor = None,
+    ) -> ResultWithTime:
+        if executor is None:
             result_with_time = self._calculate_features(self)
             self.features = result_with_time.result
             return result_with_time
         else:
-            signal.signal(signal.SIGALRM, handler)
-            signal.alarm(60)
+            future = executor.submit(self._calculate_features, self)
             try:
-                result_with_time = self._calculate_features(self)
+                result_with_time = future.result(60)
                 self.features = result_with_time.result
-                signal.alarm(0)
                 return result_with_time
-            except TimeoutException:
+            except concurrent.futures.TimeoutError:
+                self.features = {}
                 return ResultWithTime(None, 0.0)
 
     @classmethod
