@@ -7,6 +7,7 @@ from ConfigSpace import Configuration
 from src.configuration_space.LKH import CONFIGURATION_SPACE
 from src.constant import LKH_PATH, SEED, TEMP_DIR
 from src.instance import TSP_Instance
+from src.log import logger
 from src.solver.Solver import Solver
 
 
@@ -27,12 +28,25 @@ class TSP_LKH_Solver(Solver):
         features_time: float = 0.0,
     ) -> Solver.Result:
         config_filepath = solver._to_config_file(instance)
-        result = subprocess.run(
-            [LKH_PATH, config_filepath],
-            capture_output=True,
-            text=True,
-            stdin=subprocess.DEVNULL,
+        import datetime as dt
+
+        time = dt.datetime.now()
+        logger.debug(
+            f"Starting LKH solver at {time.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}"
         )
+        try:
+            result = subprocess.run(
+                [LKH_PATH, config_filepath],
+                capture_output=True,
+                text=True,
+                stdin=subprocess.DEVNULL,
+                timeout=1,
+            )
+        except subprocess.TimeoutExpired:
+            time = dt.datetime.now()
+            logger.debug(
+                f"Finishing LKH solver at {time.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}"
+            )
         time = solver._parse_result(result)
         cost = time if time < solver.MAX_TIME else time * 10
         time += features_time
@@ -64,4 +78,5 @@ class TSP_LKH_Solver(Solver):
         return min(time, self.MAX_TIME)
 
     def _remove_config_file(self, config_filepath: Path):
+        config_filepath.unlink()
         config_filepath.unlink()
