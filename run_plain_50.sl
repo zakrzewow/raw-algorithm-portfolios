@@ -5,7 +5,7 @@
 #SBATCH --nodelist=sr-[1-3]
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=11
+#SBATCH --cpus-per-task=12
 #SBATCH --mem-per-cpu=4G
 #SBATCH --time=07:59:59
 #SBATCH --mail-type=END,FAIL
