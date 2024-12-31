@@ -6,7 +6,7 @@ import numpy as np
 from ConfigSpace import Configuration, ConfigurationSpace
 
 from src.aac.SurrogateEstimator import SurrogateEstimator
-from src.constant import MAX_WORKERS, SEED
+from src.constant import MAX_WORKERS
 from src.instance.InstanceList import InstanceList
 from src.log import logger
 from src.solver.Solver import Solver
@@ -135,13 +135,7 @@ class Portfolio(list):
                 futures.append((instance, solver, future))
 
         for instance, solver, future in futures:
-            try:
-                solver_result = future.result(timeout=solver.MAX_TIME + 10)
-            except concurrent.futures.TimeoutError:
-                future.cancel()
-                solver_result = Solver.Result.error_instance(prefix, solver, instance)
-                solver_result.log()
-                solver_result.to_db()
+            solver_result = future.result()
             result.update(solver_result)
 
         executor.shutdown(wait=False, cancel_futures=True)

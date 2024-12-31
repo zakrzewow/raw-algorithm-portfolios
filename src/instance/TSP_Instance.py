@@ -204,6 +204,7 @@ class TSP_Instance(Instance):
                 [UBC_TSP_FEATURE_PATH, "-all", self.filepath],
                 capture_output=True,
                 text=True,
+                timeout=100,
             )
             output = result.stdout.strip().splitlines()
 

@@ -25,7 +25,7 @@ if __name__ == "__main__":
         portfolio=portfolio,
         instance_list=train_instances,
         prefix="config",
-        t_c=3600 * 8,
+        max_iter=75,
         calculate_features=True,
         estimator=None,
     )
