@@ -174,12 +174,12 @@ class TSP_Instance(Instance):
         instance.features = dict_
         return instance
 
-    def calculate_features(self) -> ResultWithTime:
+    @classmethod
+    def _calculate_features(cls, instance: "Instance") -> ResultWithTime:
         with Timer() as timer:
-            tspmeta_features = self._calculate_tspmeta_features()
-            ubc_features = self._calculate_ubc_features()
-            features = {**self.FEATURES, **tspmeta_features, **ubc_features}
-        self.features = features
+            tspmeta_features = instance._calculate_tspmeta_features()
+            ubc_features = instance._calculate_ubc_features()
+            features = {**instance.FEATURES, **tspmeta_features, **ubc_features}
         return ResultWithTime(features, timer.elapsed_time)
 
     def _calculate_tspmeta_features(self) -> dict:

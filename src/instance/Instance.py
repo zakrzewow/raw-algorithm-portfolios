@@ -1,12 +1,21 @@
 import copy
+import signal
 from abc import ABC, abstractmethod
 
 import numpy as np
 
-from src.constant import SEED
+from src.constant import IS_WINDOWS, SEED
 from src.database import DB
 from src.log import logger
 from src.utils import ResultWithTime, hash_str
+
+
+class TimeoutException(Exception):
+    pass
+
+
+def handler(signum, frame):
+    raise TimeoutException("Timeout!")
 
 
 class Instance(ABC):
@@ -49,8 +58,25 @@ class Instance(ABC):
     def to_dict(self) -> dict:
         pass
 
-    @abstractmethod
     def calculate_features(self) -> ResultWithTime:
+        if IS_WINDOWS:
+            result_with_time = self._calculate_features(self)
+            self.features = result_with_time.result
+            return result_with_time
+        else:
+            signal.signal(signal.SIGALRM, handler)
+            signal.alarm(60)
+            try:
+                result_with_time = self._calculate_features(self)
+                self.features = result_with_time.result
+                signal.alarm(0)
+                return result_with_time
+            except TimeoutException:
+                return ResultWithTime(None, 0.0)
+
+    @classmethod
+    @abstractmethod
+    def _calculate_features(cls, instance: "Instance") -> ResultWithTime:
         pass
 
     @abstractmethod
