@@ -31,7 +31,7 @@ if __name__ == "__main__":
     )
     aac.configure()
 
-    for i in range(10):
+    for i in range(100):
         portfolio.evaluate(
             test_instances,
             prefix=f"test{i}",
