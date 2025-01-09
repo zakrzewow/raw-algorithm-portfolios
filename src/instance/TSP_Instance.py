@@ -269,6 +269,8 @@ class TSP_Instance(Instance):
                         "DIMENSION",
                         "EDGE_WEIGHT_TYPE",
                         "NODE_COORD_SECTION",
+                        "LOWER",
+                        "UPPER",
                     )
                 ):
                     continue
