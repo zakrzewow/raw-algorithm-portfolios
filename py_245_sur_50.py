@@ -9,8 +9,8 @@ from src.solver.Portfolio import Portfolio
 from src.solver.TSP_LKH_Solver import TSP_LKH_Solver
 
 if __name__ == "__main__":
-    N = 70
-    ESTIMATOR_PCT = 0.9
+    N = 245
+    ESTIMATOR_PCT = 0.5
 
     instances = TSP_from_index_file(
         filepath=DATA_DIR / "TSP" / "CEPS_benchmark" / "index.json"

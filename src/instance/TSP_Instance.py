@@ -315,12 +315,17 @@ class TSP_Instance(Instance):
             logger.error(f"[{self}] error calculating optimum with concorde: {e}")
             return ResultWithTime(0.0, 10.0)
 
-    def plot(self):
+    def plot(self, fname: str = None):
         import matplotlib.pyplot as plt
 
         fig, ax = plt.subplots(figsize=(6, 6))
         df = self._read_file_to_df()
-        plt.scatter(df["X"], df["Y"], s=2)
+        plt.scatter(df["X"], df["Y"], s=3)
+        plt.title(f"{self}", fontsize=10)
+        ax.ticklabel_format(style="scientific", axis="both", scilimits=(0, 0))
+        plt.grid(color="black", alpha=0.05)
+        if fname:
+            plt.savefig(fname, dpi=300, bbox_inches="tight")
         plt.show()
 
 
