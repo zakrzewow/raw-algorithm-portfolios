@@ -200,11 +200,13 @@ class TSP_Instance(Instance):
             return {}
 
         try:
+            logger.debug(f"[{self}] starting...")
             result = subprocess.run(
                 [UBC_TSP_FEATURE_PATH, "-all", self.filepath],
                 capture_output=True,
                 text=True,
             )
+            logger.debug(f"[{self}] result={result}")
             output = result.stdout.strip().splitlines()
             for line in output:
                 logger.debug(f"[{self}] {line}")
