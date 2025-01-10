@@ -206,6 +206,8 @@ class TSP_Instance(Instance):
                 text=True,
             )
             output = result.stdout.strip().splitlines()
+            for line in output:
+                logger.debug(f"[{self}] {line}")
 
             header = output[0].split(",")
             values = output[1].split(",")
