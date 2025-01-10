@@ -61,7 +61,7 @@ class Instance(ABC):
         else:
             future = executor.submit(self._calculate_features, self)
             try:
-                result_with_time = future.result(60)
+                result_with_time = future.result(300)
                 self.features = result_with_time.result
                 return result_with_time
             except concurrent.futures.TimeoutError:
