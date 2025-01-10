@@ -4,6 +4,7 @@ import numpy as np
 from sklearn.base import BaseEstimator, RegressorMixin, clone
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.exceptions import NotFittedError
+from sklearn.metrics import mean_squared_error
 from sklearn.utils.validation import check_is_fitted
 
 from src.constant import MAX_WORKERS, SEED
@@ -81,8 +82,8 @@ class Estimator1(SurrogateEstimator):
         self._mask_non_timeout = None
 
     def fit(self, X, y):
-        y_timeout = y != self.max_cost
-        self.classifier.fit(X, y_timeout)
+        y_not_timeout = y != self.max_cost
+        self.classifier.fit(X, y_not_timeout)
 
         mask_non_timeout = y < self.max_cost
         if np.any(mask_non_timeout):
@@ -95,13 +96,13 @@ class Estimator1(SurrogateEstimator):
 
     def predict(self, X):
         check_is_fitted(self, "_is_fitted_")
-        is_timeout = ~self.classifier.predict(X)
+        is_not_timeout = self.classifier.predict(X)
         costs_pred = np.full(X.shape[0], self.max_cost, dtype=float)
 
         try:
-            if np.any(~is_timeout):
+            if np.any(is_not_timeout):
                 check_is_fitted(self.regressor)
-                costs_pred[~is_timeout] = self.regressor.predict(X[~is_timeout])
+                costs_pred[is_not_timeout] = self.regressor.predict(X[is_not_timeout])
         except NotFittedError:
             pass
 
@@ -124,3 +125,20 @@ class Estimator1(SurrogateEstimator):
                 f"non_timeout={non_timeout_training_data_shape}"
                 f")"
             )
+
+    def score(self, X, y):
+        y_pred = self.predict(X)
+
+        y_timeout_true = y == self.max_cost
+        y_timeout_pred = y_pred == self.max_cost
+        accuracy = (y_timeout_true == y_timeout_pred).mean()
+
+        idx_regression = (y < self.max_cost) & (y_pred < self.max_cost)
+        if np.any(idx_regression):
+            y_regression_true = y[idx_regression]
+            y_regression_pred = y_pred[idx_regression]
+            rmse = np.sqrt(mean_squared_error(y_regression_true, y_regression_pred))
+        else:
+            rmse = -1
+
+        return round(accuracy, 2), round(rmse, 2)
