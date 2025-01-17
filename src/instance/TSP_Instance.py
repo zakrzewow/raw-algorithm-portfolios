@@ -332,7 +332,9 @@ class TSP_Instance(Instance):
         plt.grid(color="black", alpha=0.05)
         if fname:
             plt.savefig(fname, dpi=300, bbox_inches="tight")
-        plt.show()
+            plt.close()
+        else:
+            plt.show()
 
 
 def TSP_from_index_file(filepath: Path) -> InstanceList:
