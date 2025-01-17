@@ -12,7 +12,7 @@ for(idx in seq_along(mutators)) {
   for(i in 0:(n_instances - 1)) {
     collection = init()
     collection = addMutator(collection, mutator)
-    x = build(n = 500L, iters = 10L, upper = 999999, collection = collection, bound.handling = "uniform")
+    x = build(n = 400L, iters = 10L, upper = 999999, collection = collection, bound.handling = "uniform")
     # dir.create(file.path(output_dir, dir_name), showWarnings = FALSE, recursive = TRUE)
     file_path = file.path(output_dir, dir_name, sprintf("%03d.tsp", i))
     exportToTSPlibFormat(x, file_path, name = dir_name, use.extended.format = FALSE, digits = 0)
