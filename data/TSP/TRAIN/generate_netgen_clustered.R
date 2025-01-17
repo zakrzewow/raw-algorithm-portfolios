@@ -1,7 +1,7 @@
 library(netgen)
 
 clusters <- c(4L, 5L, 6L, 7L, 8L)
-n_instances <- 1L
+n_instances <- 40L
 output_dir <- "./cluster_netgen"
 dir.create(file.path(output_dir), showWarnings = FALSE, recursive = TRUE)
 
