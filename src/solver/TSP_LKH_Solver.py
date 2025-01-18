@@ -35,6 +35,8 @@ class TSP_LKH_Solver(Solver):
                 stdin=subprocess.DEVNULL,
                 timeout=solver.MAX_TIME + 5,
             )
+            # with open("tmp.log", "w") as log_file:
+            #     log_file.write(result.stdout)
             time = solver._parse_result(result)
             cost = time if time < solver.MAX_TIME else solver.MAX_COST
             error = False
