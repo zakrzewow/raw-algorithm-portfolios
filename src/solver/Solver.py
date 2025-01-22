@@ -44,8 +44,10 @@ class Solver(ABC):
         logger.debug(self.__repr__())
 
     @classmethod
-    def from_db(cls, id_: str) -> "Solver":
-        dict_ = DB().select_id(DB.SCHEMA.SOLVERS, id_)
+    def from_db(cls, id_: str, db: DB = None) -> "Solver":
+        if db is None:
+            db = DB()
+        dict_ = db.select_id(DB.SCHEMA.SOLVERS, id_)
         vector = list(dict_.values())[1:]
         config = Configuration(cls.CONFIGURATION_SPACE, vector=vector)
         solver = cls(config)
