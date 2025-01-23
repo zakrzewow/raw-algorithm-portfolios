@@ -35,8 +35,6 @@ class TSP_LKH_Solver(Solver):
                 stdin=subprocess.DEVNULL,
                 timeout=solver.MAX_TIME + 5,
             )
-            with open("tmp.log", "w") as log_file:
-                log_file.write(result.stdout)
             time = solver._parse_result(result)
             cost = time if time < solver.MAX_TIME else solver.MAX_COST
             error = False
@@ -53,7 +51,7 @@ class TSP_LKH_Solver(Solver):
         with open(config_filepath, "w") as f:
             f.write(f"PROBLEM_FILE = {instance.filepath}\n")
             f.write(f"OPTIMUM = {instance.optimum}\n")
-            f.write(f"TRACE_LEVEL = 1000\n")
+            f.write(f"TRACE_LEVEL = 0\n")
             f.write(f"TOTAL_TIME_LIMIT = {self.MAX_TIME}\n")
             f.write(f"TIME_LIMIT = {self.MAX_TIME}\n")
             f.write(f"STOP_AT_OPTIMUM = YES\n")
