@@ -1,6 +1,6 @@
 from src.aac.AAC import AAC
 from src.aac.SurrogateEstimator import Estimator1
-from src.constant import DATA_DIR
+from src.constant import TEST_DIR, TRAIN_DIR
 from src.database import DB
 from src.database.queries import get_model_training_data
 from src.instance.InstanceList import InstanceList
@@ -12,10 +12,9 @@ if __name__ == "__main__":
     N = 250
     ESTIMATOR_PCT = 0.75
 
-    test_instances = TSP_from_index_file(
-        filepath=DATA_DIR / "TSP" / "TEST" / "index.json"
-    )
-    instances = TSP_from_index_file(filepath=DATA_DIR / "TSP" / "TRAIN" / "index.json")
+    test_instances = TSP_from_index_file(filepath=TEST_DIR / "index.json")
+    instances = TSP_from_index_file(filepath=TRAIN_DIR / "index.json")
+
     number_of_instances = N // 5
     train_instances = InstanceList()
     for i in range(5):

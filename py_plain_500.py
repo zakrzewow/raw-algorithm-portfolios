@@ -1,5 +1,5 @@
 from src.aac.AAC import AAC
-from src.constant import DATA_DIR
+from src.constant import TEST_DIR, TRAIN_DIR
 from src.instance.InstanceList import InstanceList
 from src.instance.TSP_Instance import TSP_from_index_file
 from src.solver.Portfolio import Portfolio
@@ -8,10 +8,9 @@ from src.solver.TSP_LKH_Solver import TSP_LKH_Solver
 if __name__ == "__main__":
     N = 500
 
-    test_instances = TSP_from_index_file(
-        filepath=DATA_DIR / "TSP" / "TEST" / "index.json"
-    )
-    instances = TSP_from_index_file(filepath=DATA_DIR / "TSP" / "TRAIN" / "index.json")
+    test_instances = TSP_from_index_file(filepath=TEST_DIR / "index.json")
+    instances = TSP_from_index_file(filepath=TRAIN_DIR / "index.json")
+
     number_of_instances = N // 5
     train_instances = InstanceList()
     for i in range(5):
