@@ -12,7 +12,7 @@ def calculate_optimum(instance):
 if __name__ == "__main__":
     dict_ = {}
     instances = TSP_from_index_file(
-        filepath=DATA_DIR / "TSP" / "TEST_200" / "index.json"
+        filepath=DATA_DIR / "TSP" / "TEST_600" / "index.json"
     )
 
     futures = []
@@ -26,5 +26,5 @@ if __name__ == "__main__":
         key = instance._get_short_filepath()
         dict_[key] = optimum
 
-    with open(DATA_DIR / "TSP" / "TEST_200" / "index.json", "w") as f:
+    with open(DATA_DIR / "TSP" / "TEST_600" / "index.json", "w") as f:
         json.dump(dict_, f, indent=4)
