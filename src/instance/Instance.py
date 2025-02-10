@@ -44,7 +44,6 @@ class Instance(ABC):
 
     def to_db(self):
         DB().insert(DB.SCHEMA.INSTANCES, self.id(), self.to_dict())
-        pass
 
     @abstractmethod
     def to_dict(self) -> dict:
