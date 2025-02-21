@@ -12,7 +12,7 @@ from src.solver.Solver import Solver
 
 class TSP_LKH_Solver(Solver):
     CONFIGURATION_SPACE = CONFIGURATION_SPACE
-    MAX_COST = 3.7
+    MAX_COST = 11.1
     MAX_TIME = 1.11
 
     def __init__(self, config: Configuration = None):
