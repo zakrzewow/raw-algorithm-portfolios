@@ -23,7 +23,7 @@ if __name__ == "__main__":
         instance_list=train_instances,
         prefix="config",
         max_iter=75,
-        calculate_features=True,
+        calculate_features=False,
         estimator=None,
     )
     aac.configure()
