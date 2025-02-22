@@ -8,8 +8,16 @@ from src.solver.TSP_LKH_Solver import TSP_LKH_Solver
 if __name__ == "__main__":
     N = 30
 
-    test_instances = TSP_from_index_file(filepath=TEST_DIR / "index.json")
-    instances = TSP_from_index_file(filepath=TRAIN_DIR / "index.json")
+    test_instances = TSP_from_index_file(
+        filepath=TEST_DIR / "index.json",
+        max_cost=100.0,
+        max_time=10.0,
+    )
+    instances = TSP_from_index_file(
+        filepath=TRAIN_DIR / "index.json",
+        max_cost=8.9,
+        max_time=0.89,
+    )
 
     number_of_instances = N // 5
     train_instances = InstanceList()

@@ -14,8 +14,6 @@ from src.utils import hash_str
 
 class Solver(ABC):
     CONFIGURATION_SPACE: ConfigurationSpace
-    MAX_COST = 0.0
-    MAX_TIME = 0.0
 
     def __init__(self, config: Configuration = None):
         if config is None:
@@ -201,8 +199,8 @@ class Solver(ABC):
                 prefix=prefix,
                 solver=solver,
                 instance=instance,
-                cost=solver.MAX_COST,
-                time=solver.MAX_TIME,
+                cost=instance.max_cost,
+                time=instance.max_time,
                 cached=False,
                 surrogate=False,
                 error=True,

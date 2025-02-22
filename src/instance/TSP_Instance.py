@@ -140,10 +140,18 @@ class TSP_Instance(Instance):
         # "acfTime": 0.0,
     }
 
-    def __init__(self, filepath: Path, optimum: float):
+    def __init__(
+        self,
+        filepath: Path,
+        optimum: float,
+        max_cost: float = 0,
+        max_time: float = 0,
+    ):
         super().__init__()
         self.filepath = filepath
         self.optimum = optimum
+        self.max_cost = max_cost
+        self.max_time = max_time
 
     def __repr__(self):
         filepath = self._get_short_filepath()
@@ -154,6 +162,8 @@ class TSP_Instance(Instance):
         return {
             "filepath": self._get_short_filepath(),
             "optimum": self.optimum,
+            "max_cost": self.max_cost,
+            "max_time": self.max_time,
             **self.features,
         }
 
@@ -168,7 +178,9 @@ class TSP_Instance(Instance):
         dict_ = DB().select_id(DB.SCHEMA.INSTANCES, id_)
         filepath = DATA_DIR / dict_["filepath"]
         optimum = dict_["optimum"]
-        instance = cls(filepath, optimum)
+        max_cost = dict_["max_cost"]
+        max_time = dict_["max_time"]
+        instance = cls(filepath, optimum, max_cost, max_time)
         del dict_["filepath"]
         del dict_["optimum"]
         instance.features = dict_
@@ -253,7 +265,7 @@ class TSP_Instance(Instance):
             for node, x, y in df.itertuples():
                 file.write(f"{node} {x:.0f} {y:.0f}\n")
             file.write("EOF\n")
-        instance = TSP_Instance(out_filepath, 0)
+        instance = TSP_Instance(out_filepath, 0, self.max_cost, self.max_time)
         optimum, time = instance._get_optimum_with_concorde()
         instance.optimum = optimum
         return ResultWithTime(instance, time)
@@ -337,7 +349,11 @@ class TSP_Instance(Instance):
             plt.show()
 
 
-def TSP_from_index_file(filepath: Path) -> InstanceList:
+def TSP_from_index_file(
+    filepath: Path,
+    max_cost: float,
+    max_time: float,
+) -> InstanceList:
     instances = InstanceList()
 
     with open(filepath) as f:
@@ -345,7 +361,7 @@ def TSP_from_index_file(filepath: Path) -> InstanceList:
 
     for k, v in index.items():
         filepath = DATA_DIR / Path(k)
-        instance = TSP_Instance(filepath, v)
+        instance = TSP_Instance(filepath, v, max_cost, max_time)
         instances.append(instance)
     return instances
 
@@ -353,10 +369,12 @@ def TSP_from_index_file(filepath: Path) -> InstanceList:
 def TSP_train_test_from_index_file(
     filepath: Path,
     train_size: int,
+    max_cost: float,
+    max_time: float,
 ) -> tuple[InstanceList, InstanceList]:
     train_instances = InstanceList()
     test_instances = InstanceList()
-    instances = TSP_from_index_file(filepath)
+    instances = TSP_from_index_file(filepath, max_cost, max_time)
 
     rng = np.random.default_rng(SEED)
     rng.shuffle(instances)
