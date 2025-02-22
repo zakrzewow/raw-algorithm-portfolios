@@ -351,8 +351,8 @@ class TSP_Instance(Instance):
 
 def TSP_from_index_file(
     filepath: Path,
-    max_cost: float,
-    max_time: float,
+    max_cost: float = 0.0,
+    max_time: float = 0.0,
 ) -> InstanceList:
     instances = InstanceList()
 
