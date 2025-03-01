@@ -15,8 +15,8 @@ if __name__ == "__main__":
     )
     instances = TSP_from_index_file(
         filepath=TRAIN_DIR / "index.json",
-        max_cost=10.9,
-        max_time=1.09,
+        max_cost=2.3,
+        max_time=0.23,
     )
 
     number_of_instances = N // 5
