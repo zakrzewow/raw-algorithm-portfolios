@@ -10,15 +10,15 @@ if __name__ == "__main__":
 
     test_instances = TSP_from_index_file(
         filepath=DATA_DIR / "TSP" / "TEST_600" / "index.json",
-        max_cost=26.6,
-        max_time=2.66,
+        max_cost=53.1,
+        max_time=5.31,
     )
     number_of_instances = N // 5
 
     instances = TSP_from_index_file(
         filepath=DATA_DIR / "TSP" / "TRAIN_200" / "index.json",
-        max_cost=2.3,
-        max_time=0.23,
+        max_cost=4.7,
+        max_time=0.47,
     )
     train_instances_200 = InstanceList()
     for i in range(5):
@@ -26,8 +26,8 @@ if __name__ == "__main__":
 
     instances = TSP_from_index_file(
         filepath=DATA_DIR / "TSP" / "TRAIN_400" / "index.json",
-        max_cost=10.9,
-        max_time=1.09,
+        max_cost=21.8,
+        max_time=2.18,
     )
     train_instances_400 = InstanceList()
     for i in range(5):
@@ -35,8 +35,8 @@ if __name__ == "__main__":
 
     instances = TSP_from_index_file(
         filepath=DATA_DIR / "TSP" / "TRAIN_600" / "index.json",
-        max_cost=26.6,
-        max_time=2.66,
+        max_cost=53.1,
+        max_time=5.31,
     )
     train_instances_600 = InstanceList()
     for i in range(5):
