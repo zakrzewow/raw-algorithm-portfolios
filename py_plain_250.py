@@ -10,13 +10,13 @@ if __name__ == "__main__":
 
     test_instances = TSP_from_index_file(
         filepath=TEST_DIR / "index.json",
-        max_cost=53.1,
-        max_time=5.31,
+        max_cost=26.6,
+        max_time=2.66,
     )
     instances = TSP_from_index_file(
         filepath=TRAIN_DIR / "index.json",
-        max_cost=0.2,
-        max_time=0.02,
+        max_cost=0.5,
+        max_time=0.05,
     )
 
     number_of_instances = N // 5
@@ -36,7 +36,7 @@ if __name__ == "__main__":
     )
     aac.configure()
 
-    for i in range(100):
+    for i in range(200):
         portfolio.evaluate(
             test_instances,
             prefix=f"test{i}",
