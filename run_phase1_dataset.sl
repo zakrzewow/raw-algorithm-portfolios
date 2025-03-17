@@ -1,15 +1,15 @@
 #!/bin/bash
-#SBATCH --job-name=run-plain-30
+#SBATCH --job-name=run-phase1-dataset
 #SBATCH --account=mandziuk-lab
 #SBATCH --partition=short
 #SBATCH --nodelist=sr-[1-3]
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=11
+#SBATCH --cpus-per-task=25
 #SBATCH --mem-per-cpu=2G
-#SBATCH --time=04:59:59
+#SBATCH --time=23:59:59
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=01161643@pw.edu.pl
 #SBATCH --output=/home2/faculty/gzakrzewski/raw-algorithm-portfolios/log/%x-%j.log
 
-srun /home2/faculty/gzakrzewski/miniconda3/envs/SMAC/bin/python /home2/faculty/gzakrzewski/raw-algorithm-portfolios/py_plain_30.py
+srun /home2/faculty/gzakrzewski/miniconda3/envs/SMAC/bin/python /home2/faculty/gzakrzewski/raw-algorithm-portfolios/py_phase1_dataset.py
