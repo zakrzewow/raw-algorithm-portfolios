@@ -17,8 +17,6 @@ DATABASE_DIR = MAIN_DIR / "database"
 LOG_DIR = MAIN_DIR / "log"
 SOLVER_DIR = MAIN_DIR / "solver"
 TEMP_DIR = MAIN_DIR / "temp"
-TEST_DIR = DATA_DIR / "TSP" / os.environ.get("TEST_DIR", "TEST_600").strip()
-TRAIN_DIR = DATA_DIR / "TSP" / os.environ.get("TRAIN_DIR", "TRAIN_400").strip()
 
 # environment
 JOB_NAME = os.environ.get("SLURM_JOB_NAME", "test")
