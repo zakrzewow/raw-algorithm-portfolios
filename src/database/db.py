@@ -111,3 +111,15 @@ class DB:
 
     def query2df(self, query: str) -> pd.DataFrame:
         return pd.read_sql_query(query, self._conn)
+
+    def get_instances(self) -> pd.DataFrame:
+        query = f"SELECT * FROM {self.SCHEMA.INSTANCES}"
+        return self.query2df(query)
+
+    def get_solvers(self) -> pd.DataFrame:
+        query = f"SELECT * FROM {self.SCHEMA.SOLVERS}"
+        return self.query2df(query)
+
+    def get_results(self) -> pd.DataFrame:
+        query = f"SELECT * FROM {self.SCHEMA.RESULTS}"
+        return self.query2df(query)
