@@ -27,6 +27,6 @@ if __name__ == "__main__":
     portfolio.evaluate(
         instance_list=instances,
         prefix="dataset",
-        calculate_features=True,
+        calculate_features=False,
         cache=True,
     )
