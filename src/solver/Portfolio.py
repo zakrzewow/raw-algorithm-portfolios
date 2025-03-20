@@ -13,8 +13,8 @@ from src.solver.Solver import Solver
 
 
 class Portfolio(list):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     @classmethod
     def from_iterable(cls, solvers: Iterable[Solver]) -> "Portfolio":
@@ -33,7 +33,7 @@ class Portfolio(list):
     def __getitem__(self, index):
         result = super().__getitem__(index)
         if isinstance(index, slice):
-            return InstanceList(result)
+            return Portfolio(result)
         return result
 
     def __repr__(self):

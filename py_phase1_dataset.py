@@ -23,7 +23,7 @@ if __name__ == "__main__":
     )
     instances = instances[i : i + 20]
 
-    portfolio = Portfolio.from_solver_class(TSP_LKH_Solver, size=500)[500:]
+    portfolio = Portfolio.from_solver_class(TSP_LKH_Solver, size=1000)[500:]
     portfolio.evaluate(
         instance_list=instances,
         prefix="dataset",
