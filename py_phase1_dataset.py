@@ -9,7 +9,7 @@ if __name__ == "__main__":
     generator = os.environ.get("GENERATOR").strip()
     generator_to_i = {
         "cluster_netgen": 0,
-        "comperssion": 200,
+        "compression": 200,
         "expansion": 400,
         "explosion": 600,
         "grid": 800,
