@@ -18,12 +18,12 @@ if __name__ == "__main__":
 
     instances = TSP_from_index_file(
         filepath=DATA_DIR / "TSP" / "TRAIN" / "index.json",
-        max_cost=10000.0,
-        max_time=1000.0,
+        max_cost=3000.0,
+        max_time=300.0,
     )
-    instances = instances[i : i + 5]
+    instances = instances[i : i + 20]
 
-    portfolio = Portfolio.from_solver_class(TSP_LKH_Solver, size=500)
+    portfolio = Portfolio.from_solver_class(TSP_LKH_Solver, size=500)[500:]
     portfolio.evaluate(
         instance_list=instances,
         prefix="dataset",

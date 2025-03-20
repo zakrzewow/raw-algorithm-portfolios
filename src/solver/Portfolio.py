@@ -30,6 +30,12 @@ class Portfolio(list):
             portfolio.append(solver)
         return portfolio
 
+    def __getitem__(self, index):
+        result = super().__getitem__(index)
+        if isinstance(index, slice):
+            return InstanceList(result)
+        return result
+
     def __repr__(self):
         str_ = super().__repr__()
         str_ = f"Portfolio(size={self.size}){str_}"
