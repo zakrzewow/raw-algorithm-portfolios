@@ -58,10 +58,11 @@ def evaluate_model_with_cross_validation(
             cut_off_test = np.full(X_test.shape[0], np.inf)
 
         y_train = np.clip(y_train, 0, cut_off_train)
-        y_test = np.clip(y_test, 0, a_max=cut_off_test)
+        y_test = np.clip(y_test, 0, cut_off_test)
 
         wrapper.fit(X_train, y_train, cut_off_train)
         y_pred = wrapper.predict(X_test, cut_off_test)
+        y_pred = np.clip(y_pred, 0, 300.0)
 
         all_y_test.append(y_test)
         all_y_test_not_censored.append(y_test_not_censored)

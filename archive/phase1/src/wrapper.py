@@ -12,11 +12,13 @@ class BaseWrapper(ABC):
     ):
         valid_params = inspect.signature(model_cls.__init__).parameters.keys()
         valid_params = [param for param in valid_params if param != "self"]
-        model_kwargs = {k: v for k, v in kwargs.items() if k in valid_params}
-        self.model = model_cls(**model_kwargs)
+        self.model_kwargs = {k: v for k, v in kwargs.items() if k in valid_params}
+        self.model_cls = model_cls
+        self.model = None
 
     def fit(self, X, y, cut_off) -> "BaseWrapper":
         X, y, cut_off = self._preprocess_fit(X, y, cut_off)
+        self.model = self.model_cls(**self.model_kwargs)
         return self._fit(X, y, cut_off)
 
     def _preprocess_fit(self, X, y, cut_off):
