@@ -15,7 +15,7 @@ def evaluate_model_with_cross_validation(
     permuation_lognormal_mean_sigma: Tuple[float, float] = None,
     random_state: int = 0,
 ):
-    result = {"wrapper": wrapper, "rmse_values": []}
+    result = {"rmse_values": []}
     all_y_test = []
     all_y_test_not_censored = []
     all_y_pred = []
@@ -68,7 +68,7 @@ def evaluate_model_with_cross_validation(
         all_y_test_not_censored.append(y_test_not_censored)
         all_y_pred.append(y_pred)
 
-        rmse = np.sqrt(mean_squared_error(np.log(y_test + 0.01), np.log(y_pred + 0.01)))
+        rmse = np.sqrt(mean_squared_error(np.log(y_test_not_censored + 0.01), np.log(y_pred + 0.01)))
         result["rmse_values"].append(rmse)
 
     result["rmse"] = np.mean(result["rmse_values"])
