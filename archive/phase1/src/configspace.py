@@ -15,7 +15,7 @@ from sklearn.linear_model import Ridge
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.svm import SVR
-from sksurv.ensemble import RandomSurvivalForest
+from sksurv.ensemble import GradientBoostingSurvivalAnalysis, RandomSurvivalForest
 from sksurv.linear_model import CoxPHSurvivalAnalysis
 from xgboost import XGBRegressor
 
@@ -25,6 +25,7 @@ if __name__ == "__main__":
     XGBRegressor
     SVR
     RandomSurvivalForest
+    GradientBoostingSurvivalAnalysis
     CoxPHSurvivalAnalysis
 
 RANDOM_STATE = 0
@@ -81,6 +82,7 @@ RANDOM_FOREST_CONFIGSPACE = ConfigurationSpace(
         Integer(name="min_samples_split", bounds=(2, 32), default=2),
         Integer(name="min_samples_leaf", bounds=(1, 32), default=1),
         Float(name="max_features", bounds=(0, 1.0), default=1.0),
+        Float(name="ccp_alpha", bounds=(1e-3, 10.0), default=1e-3, log=True),
         Constant(name="random_state", value=RANDOM_STATE),
         Constant(name="n_jobs", value=-1),
     ],
@@ -189,9 +191,26 @@ RANDOM_SURVIVAL_FOREST_CONFIGSPACE = ConfigurationSpace(
 )
 
 
+GB_COX_CONFIGSPACE = ConfigurationSpace(
+    seed=0,
+    space=[
+        Constant(name="loss", value="coxph"),
+        Float(name="learning_rate", bounds=(0.001, 0.3), default=0.1, log=True),
+        Integer(name="n_estimators", bounds=(10, 1000), default=100),
+        Float(name="subsample", bounds=(0.5, 1.0), default=1.0),
+        Integer(name="min_samples_split", bounds=(2, 32), default=2),
+        Integer(name="min_samples_leaf", bounds=(1, 32), default=1),
+        Integer(name="max_depth", bounds=(2, 32), default=32),
+        Float(name="max_features", bounds=(0, 1.0), default=1.0),
+        Float(name="ccp_alpha", bounds=(1e-3, 10.0), default=1e-3, log=True),
+        Constant(name="random_state", value=RANDOM_STATE),
+    ],
+)
+
 for hp in SURVIVAL_FUNCTION_WRAPPER_CONFIGSPACE.values():
     COX_PH_CONFIGSPACE.add(hp)
     RANDOM_SURVIVAL_FOREST_CONFIGSPACE.add(hp)
+    GB_COX_CONFIGSPACE.add(hp)
 
 COX_PH_CONFIGSPACE.add(
     InCondition(
@@ -218,6 +237,20 @@ RANDOM_SURVIVAL_FOREST_CONFIGSPACE.add(
     EqualsCondition(
         RANDOM_SURVIVAL_FOREST_CONFIGSPACE["risk_beta"],
         RANDOM_SURVIVAL_FOREST_CONFIGSPACE["risk_function"],
+        "exponential",
+    )
+)
+GB_COX_CONFIGSPACE.add(
+    InCondition(
+        GB_COX_CONFIGSPACE["risk_alpha"],
+        GB_COX_CONFIGSPACE["risk_function"],
+        ["polynomial", "exponential"],
+    )
+)
+GB_COX_CONFIGSPACE.add(
+    EqualsCondition(
+        GB_COX_CONFIGSPACE["risk_beta"],
+        GB_COX_CONFIGSPACE["risk_function"],
         "exponential",
     )
 )
