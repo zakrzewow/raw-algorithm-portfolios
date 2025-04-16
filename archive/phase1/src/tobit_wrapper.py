@@ -1,12 +1,9 @@
-import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.optim import SGD
 from torch.optim.lr_scheduler import CyclicLR
 from torch.utils.data import DataLoader, TensorDataset
-
-from .wrapper import StandardScaledLogTransformedWrapper
 
 
 class TobitNet(nn.Module):
@@ -39,7 +36,7 @@ def tobit_loss(mu, sigma, y, is_censored):
 
 class TobitModel:
     def __init__(self):
-        pass
+        self.model = None
 
     def fit(self, X, y, cut_off):
         is_censored = y >= cut_off
@@ -47,33 +44,36 @@ class TobitModel:
         loader = DataLoader(dataset, batch_size=16, shuffle=True)
 
         init_std = y.std()
-        model = TobitNet(input_dim=X.shape[1], init_bias_std=init_std)
-        optimizer = SGD(model.parameters(), lr=1e-4, momentum=0.9, weight_decay=1e-4)
+        self.model = TobitNet(input_dim=X.shape[1], init_bias_std=init_std)
+        optimizer = SGD(
+            self.model.parameters(), lr=1e-4, momentum=0.9, weight_decay=1e-4
+        )
         scheduler = CyclicLR(
-            optimizer, base_lr=1e-4, max_lr=1e-2, step_size_up=100, mode="triangular",
+            optimizer,
+            base_lr=1e-4,
+            max_lr=1e-2,
+            step_size_up=100,
+            mode="triangular",
         )
 
-        model.train()
+        self.model.train()
         for epoch in range(500):
             for X_batch, y_batch, censored_batch in loader:
-                mu_pred, sigma_pred = model(X_batch)
+                mu_pred, sigma_pred = self.model(X_batch)
                 loss = tobit_loss(mu_pred, sigma_pred, y_batch, censored_batch.float())
                 optimizer.zero_grad()
                 loss.backward()
-                torch.nn.utils.clip_grad_value_(model.parameters(), 0.1)
+                torch.nn.utils.clip_grad_value_(self.model.parameters(), 0.1)
                 optimizer.step()
                 scheduler.step()
 
-        self.model.fit(X, y)
         return self
 
 
+# class TobitWrapper(StandardScaledLogTransformedWrapper):
+#     def _fit(self, X, y, cut_off) -> "TobitWrapper":
+#         self.model.fit(X, y, cut_off)
+#         return self
 
-class TobitWrapper(StandardScaledLogTransformedWrapper):
-
-    def _fit(self, X, y, cut_off) -> "TobitWrapper":
-
-
-
-    def _predict(self, X, cut_off) -> np.ndarray:
-        return self.model.predict(X)
+#     def _predict(self, X, cut_off) -> np.ndarray:
+#         return self.model.predict(X)
