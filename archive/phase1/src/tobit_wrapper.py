@@ -1,9 +1,13 @@
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.optim import SGD
 from torch.optim.lr_scheduler import CyclicLR
 from torch.utils.data import DataLoader, TensorDataset
+from tqdm.auto import tqdm
+
+from src.wrapper import StandardScaledLogTransformedWrapper
 
 
 class TobitNet(nn.Module):
@@ -40,6 +44,11 @@ class TobitModel:
 
     def fit(self, X, y, cut_off):
         is_censored = y >= cut_off
+
+        X = torch.tensor(X, dtype=torch.float32)
+        y = torch.tensor(y, dtype=torch.float32)
+        is_censored = torch.tensor(is_censored, dtype=torch.float32)
+
         dataset = TensorDataset(X, y, is_censored)
         loader = DataLoader(dataset, batch_size=16, shuffle=True)
 
@@ -57,7 +66,7 @@ class TobitModel:
         )
 
         self.model.train()
-        for epoch in range(500):
+        for epoch in range(250):
             for X_batch, y_batch, censored_batch in loader:
                 mu_pred, sigma_pred = self.model(X_batch)
                 loss = tobit_loss(mu_pred, sigma_pred, y_batch, censored_batch.float())
@@ -69,11 +78,17 @@ class TobitModel:
 
         return self
 
+    def predict(self, X, cut_off):
+        X = torch.tensor(X, dtype=torch.float32)
+        y_pred, _ = self.model(X)
+        y_pred = y_pred.detach().numpy()
+        return y_pred
 
-# class TobitWrapper(StandardScaledLogTransformedWrapper):
-#     def _fit(self, X, y, cut_off) -> "TobitWrapper":
-#         self.model.fit(X, y, cut_off)
-#         return self
 
-#     def _predict(self, X, cut_off) -> np.ndarray:
-#         return self.model.predict(X)
+class TobitWrapper(StandardScaledLogTransformedWrapper):
+    def _fit(self, X, y, cut_off) -> "TobitWrapper":
+        self.model.fit(X, y, cut_off)
+        return self
+
+    def _predict(self, X, cut_off) -> np.ndarray:
+        return self.model.predict(X, cut_off)
