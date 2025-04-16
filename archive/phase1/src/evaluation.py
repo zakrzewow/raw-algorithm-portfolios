@@ -1,6 +1,7 @@
 from typing import List, Tuple
 
 import numpy as np
+import pandas as pd
 from sklearn.metrics import mean_squared_error
 
 from .split import permutate_df_by_cost_decreasing
@@ -28,18 +29,19 @@ def evaluate_model_with_cross_validation(
 
         if permuation_lognormal_mean_sigma is not None:
             mean, sigma = permuation_lognormal_mean_sigma
-            df_train, cut_off_train = permutate_df_by_cost_decreasing(
-                df_train,
+            df_train_test = pd.concat([df_train, df_test], axis=0)
+            df_train_test, cut_off_train_test = permutate_df_by_cost_decreasing(
+                df_train_test,
                 lognormal_mean=mean,
                 lognormal_sigma=sigma,
                 random_state=random_state,
             )
-            df_test, cut_off_test = permutate_df_by_cost_decreasing(
-                df_test,
-                lognormal_mean=mean,
-                lognormal_sigma=sigma,
-                random_state=random_state,
-            )
+            is_train = df_train_test.index.isin(train_idx)
+            is_test = df_train_test.index.isin(test_idx)
+            df_train = df_train_test.loc[is_train]
+            cut_off_train = cut_off_train_test[is_train]
+            df_test = df_train_test.loc[is_test]
+            cut_off_test = cut_off_train_test[is_test]
 
         X_train = df_train.drop(columns=not_train_cols)
         y_train = df_train["cost"].to_numpy()
@@ -68,7 +70,11 @@ def evaluate_model_with_cross_validation(
         all_y_test_not_censored.append(y_test_not_censored)
         all_y_pred.append(y_pred)
 
-        rmse = np.sqrt(mean_squared_error(np.log(y_test_not_censored + 0.01), np.log(y_pred + 0.01)))
+        rmse = np.sqrt(
+            mean_squared_error(
+                np.log(y_test_not_censored + 0.01), np.log(y_pred + 0.01)
+            )
+        )
         result["rmse_values"].append(rmse)
 
     result["rmse"] = np.mean(result["rmse_values"])
