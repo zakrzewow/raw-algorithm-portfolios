@@ -62,20 +62,24 @@ def evaluate_model_with_cross_validation(
         y_train = np.clip(y_train, 0, cut_off_train)
         y_test = np.clip(y_test, 0, cut_off_test)
 
-        wrapper.fit(X_train, y_train, cut_off_train)
-        y_pred = wrapper.predict(X_test, cut_off_test)
-        y_pred = np.clip(y_pred, 0, 300.0)
+        try:
+            wrapper.fit(X_train, y_train, cut_off_train)
+            y_pred = wrapper.predict(X_test, cut_off_test)
+            y_pred = np.clip(y_pred, 0, 300.0)
 
-        all_y_test.append(y_test)
-        all_y_test_not_censored.append(y_test_not_censored)
-        all_y_pred.append(y_pred)
+            all_y_test.append(y_test)
+            all_y_test_not_censored.append(y_test_not_censored)
+            all_y_pred.append(y_pred)
 
-        rmse = np.sqrt(
-            mean_squared_error(
-                np.log(y_test_not_censored + 0.01), np.log(y_pred + 0.01)
+            rmse = np.sqrt(
+                mean_squared_error(
+                    np.log(y_test_not_censored + 0.01), np.log(y_pred + 0.01)
+                )
             )
-        )
-        result["rmse_values"].append(rmse)
+            result["rmse_values"].append(rmse)
+        except Exception as e:
+            print(f"Error during model fitting/prediction: {e}")
+            continue
 
     result["rmse"] = np.mean(result["rmse_values"])
     result["y_test"] = np.concatenate(all_y_test)

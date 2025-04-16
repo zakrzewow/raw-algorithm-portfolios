@@ -72,6 +72,8 @@ class LogPredictMixin:
 class SkipCutOffMixin:
     def _preprocess_fit(self, X, y, cut_off):
         idx = y < cut_off
+        if idx.sum() == 0:
+            raise ValueError("No data points below cut-off.")
         X = X[idx]
         y = y[idx]
         cut_off = cut_off[idx]
