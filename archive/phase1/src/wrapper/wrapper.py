@@ -99,7 +99,12 @@ class StandardScaledLogTransformedWrapper(
 ):
     """A wrapper that applies both standard scaling to features and log transformation to targets."""
 
-    pass
+    def _fit(self, X, y, cut_off) -> "StandardScaledLogTransformedWrapper":
+        self.model.fit(X, y, cut_off)
+        return self
+
+    def _predict(self, X, cut_off) -> np.ndarray:
+        return self.model.predict(X, cut_off)
 
 
 class ScikitLearnWrapper(StandardScaledLogTransformedWrapper):

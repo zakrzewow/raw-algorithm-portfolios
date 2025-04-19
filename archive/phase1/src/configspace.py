@@ -1,4 +1,3 @@
-import xgboost as xgb
 from ConfigSpace import (
     Categorical,
     ConfigurationSpace,
@@ -8,28 +7,13 @@ from ConfigSpace import (
     Integer,
 )
 from ConfigSpace.conditions import EqualsCondition, InCondition
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import RBF
-from sklearn.linear_model import Ridge
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import PolynomialFeatures
-from sklearn.svm import SVR
-from sksurv.ensemble import GradientBoostingSurvivalAnalysis, RandomSurvivalForest
-from sksurv.linear_model import CoxPHSurvivalAnalysis
-from xgboost import XGBRegressor
-
-if __name__ == "__main__":
-    Ridge
-    RandomForestRegressor
-    XGBRegressor
-    SVR
-    RandomSurvivalForest
-    GradientBoostingSurvivalAnalysis
-    CoxPHSurvivalAnalysis
 
 RANDOM_STATE = 0
 
+
+###################################################################################
+# RIDGE
+###################################################################################
 RIDGE_CONFIGSPACE = ConfigurationSpace(
     seed=0,
     space=[
@@ -39,32 +23,9 @@ RIDGE_CONFIGSPACE = ConfigurationSpace(
 )
 
 
-class PolynomialRidge:
-    def __init__(self, alpha=1.0, degree=2, interaction_only=False):
-        self.alpha = alpha
-        self.degree = degree
-        self.interaction_only = interaction_only
-
-        self.pipeline = Pipeline(
-            [
-                (
-                    "poly",
-                    PolynomialFeatures(
-                        degree=self.degree, interaction_only=self.interaction_only
-                    ),
-                ),
-                ("ridge", Ridge(alpha=self.alpha, random_state=RANDOM_STATE)),
-            ]
-        )
-
-    def fit(self, X, y):
-        self.pipeline.fit(X, y)
-        return self
-
-    def predict(self, X):
-        return self.pipeline.predict(X)
-
-
+###################################################################################
+# POLY RIDGE
+###################################################################################
 POLY_RIDGE_CONFIGSPACE = ConfigurationSpace(
     seed=0,
     space=[
@@ -74,7 +35,9 @@ POLY_RIDGE_CONFIGSPACE = ConfigurationSpace(
     ],
 )
 
-
+###################################################################################
+# RANDOM FOREST
+###################################################################################
 RANDOM_FOREST_CONFIGSPACE = ConfigurationSpace(
     seed=0,
     space=[
@@ -88,7 +51,9 @@ RANDOM_FOREST_CONFIGSPACE = ConfigurationSpace(
     ],
 )
 
-
+###################################################################################
+# XGB
+###################################################################################
 XGB_CONFIGSPACE = ConfigurationSpace(
     seed=0,
     space=[
@@ -105,7 +70,9 @@ XGB_CONFIGSPACE = ConfigurationSpace(
     ],
 )
 
-
+###################################################################################
+# SVR
+###################################################################################
 SVR_CONFIGSPACE = ConfigurationSpace(
     seed=0,
     space=[
@@ -126,21 +93,9 @@ SVR_CONFIGSPACE.add(
     )
 )
 
-
-class GPRWithRBF(GaussianProcessRegressor):
-    def __init__(self, length_scale=1.0, length_scale_bounds=(1e-5, 1e5), alpha=1e-10):
-        kernel = RBF(length_scale=length_scale, length_scale_bounds=length_scale_bounds)
-        super().__init__(kernel=kernel, alpha=alpha, random_state=RANDOM_STATE)
-
-    @property
-    def length_scale(self):
-        return self.kernel.length_scale
-
-    @property
-    def length_scale_bounds(self):
-        return self.kernel.length_scale_bounds
-
-
+###################################################################################
+# GPR
+###################################################################################
 GPR_CONFIGSPACE = ConfigurationSpace(
     seed=0,
     space=[
@@ -155,20 +110,9 @@ GPR_CONFIGSPACE = ConfigurationSpace(
 )
 
 
-SURVIVAL_FUNCTION_WRAPPER_CONFIGSPACE = ConfigurationSpace(
-    seed=0,
-    space=[
-        Categorical(
-            name="risk_function",
-            items=["linear", "polynomial", "exponential", "par10"],
-            default="linear",
-        ),
-        Float(name="risk_alpha", bounds=(0.1, 10.0), default=1.0, log=False),
-        Float(name="risk_beta", bounds=(0.01, 300.0), default=1.0, log=True),
-    ],
-)
-
-
+###################################################################################
+# COX PH
+###################################################################################
 COX_PH_CONFIGSPACE = ConfigurationSpace(
     seed=0,
     space=[
@@ -178,6 +122,9 @@ COX_PH_CONFIGSPACE = ConfigurationSpace(
 )
 
 
+###################################################################################
+# RANDOM SURVIVAL FOREST
+###################################################################################
 RANDOM_SURVIVAL_FOREST_CONFIGSPACE = ConfigurationSpace(
     seed=0,
     space=[
@@ -190,7 +137,9 @@ RANDOM_SURVIVAL_FOREST_CONFIGSPACE = ConfigurationSpace(
     ],
 )
 
-
+###################################################################################
+# GB COX
+###################################################################################
 GB_COX_CONFIGSPACE = ConfigurationSpace(
     seed=0,
     space=[
@@ -207,6 +156,21 @@ GB_COX_CONFIGSPACE = ConfigurationSpace(
     ],
 )
 
+###################################################################################
+# SURVIVAL FUNCTION WRAPPER
+###################################################################################
+SURVIVAL_FUNCTION_WRAPPER_CONFIGSPACE = ConfigurationSpace(
+    seed=0,
+    space=[
+        Categorical(
+            name="risk_function",
+            items=["linear", "polynomial", "exponential", "par10"],
+            default="linear",
+        ),
+        Float(name="risk_alpha", bounds=(0.1, 10.0), default=1.0, log=False),
+        Float(name="risk_beta", bounds=(0.01, 300.0), default=1.0, log=True),
+    ],
+)
 for hp in SURVIVAL_FUNCTION_WRAPPER_CONFIGSPACE.values():
     COX_PH_CONFIGSPACE.add(hp)
     RANDOM_SURVIVAL_FOREST_CONFIGSPACE.add(hp)
@@ -255,7 +219,9 @@ GB_COX_CONFIGSPACE.add(
     )
 )
 
-
+###################################################################################
+# XGB AFT
+###################################################################################
 XGB_AFT_CONFIGSPACE = ConfigurationSpace(
     seed=0,
     space=[
@@ -286,54 +252,3 @@ XGB_AFT_CONFIGSPACE.add(
         ["normal", "logistic"],
     )
 )
-
-
-class XGBRegressorAFT:
-    def __init__(
-        self,
-        objective="survival:aft",
-        eval_metric="aft-nloglik",
-        aft_loss_distribution="normal",
-        aft_loss_distribution_scale=1.0,
-        num_boost_round=100,
-        n_estimators=100,
-        max_depth=6,
-        learning_rate=0.1,
-        subsample=1.0,
-        colsample_bytree=1.0,
-        min_child_weight=1,
-        gamma=0,
-        reg_lambda=1e-3,
-        reg_alpha=1e-3,
-        seed=0,
-    ):
-        self.params = {
-            "objective": objective,
-            "eval_metric": eval_metric,
-            "aft_loss_distribution": aft_loss_distribution,
-            "aft_loss_distribution_scale": aft_loss_distribution_scale,
-            "n_estimators": n_estimators,
-            "max_depth": max_depth,
-            "learning_rate": learning_rate,
-            "subsample": subsample,
-            "colsample_bytree": colsample_bytree,
-            "min_child_weight": min_child_weight,
-            "gamma": gamma,
-            "reg_lambda": reg_lambda,
-            "reg_alpha": reg_alpha,
-            "seed": seed,
-        }
-        self.num_boost_round = num_boost_round
-
-    def fit(self, dtrain):
-        self.bst = xgb.train(
-            self.params,
-            dtrain,
-            num_boost_round=self.num_boost_round,
-            evals=[(dtrain, "train")],
-            verbose_eval=False,
-        )
-        return self
-
-    def predict(self, dtest):
-        return self.bst.predict(dtest)
