@@ -1,3 +1,5 @@
+import warnings
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -16,6 +18,10 @@ from torch.optim.lr_scheduler import CyclicLR
 from torch.utils.data import DataLoader, TensorDataset
 from tqdm.auto import tqdm
 from xgboost import XGBRegressor
+
+warnings.filterwarnings("ignore", category=UserWarning)
+warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", message=".*algorithm did not converge.*")
 
 if __name__ == "__main__":
     Ridge
