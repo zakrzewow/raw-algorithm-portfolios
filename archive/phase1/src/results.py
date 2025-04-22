@@ -42,7 +42,7 @@ def plot_scatter(plot_df, const_cut_off=None):
 
 
 def plot_line(result_df):
-    fig, ax = plt.subplots(figsize=(6, 5))
+    fig, ax = plt.subplots(figsize=(5, 3.5))
 
     plot_df = (
         result_df.groupby(["name", "solver_number"], sort=False)["rmse"]
@@ -66,5 +66,5 @@ def plot_line(result_df):
     plt.legend(loc="best", frameon=True)
     plt.xticks(plot_df["solver_number"].unique(), plot_df["solver_number"].unique())
     plt.title("RMSE vs Number of Solvers")
-    plt.ylim(1)
+    plt.ylim(0)
     return fig, ax
