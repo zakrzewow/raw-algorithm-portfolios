@@ -9,10 +9,10 @@ HO = SimpleNamespace(
     SOLVER_NUMBER=90,
     RANDOM_STATE=0,
 )
-RANDOM_STATE_LIST = list(range(1, 2))
-# RANDOM_STATE_LIST = list(range(1, 21))
-SOLVER_NUMBER_LIST = [5, 10, 15, 20, 30, 50]
-# SOLVER_NUMBER_LIST = [5, 10, 15, 20, 30, 50, 70, 100, 150, 200, 300, 500]
+# RANDOM_STATE_LIST = list(range(1, 2))
+RANDOM_STATE_LIST = list(range(1, 21))
+# SOLVER_NUMBER_LIST = [5, 10, 15, 20, 30, 50]
+SOLVER_NUMBER_LIST = [5, 10, 15, 20, 30, 50, 70, 100, 150, 200, 300, 500]
 
 
 MAIN_DIR = Path(__file__).resolve().parent.parent
