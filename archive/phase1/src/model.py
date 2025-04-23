@@ -1,9 +1,12 @@
 import warnings
 
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import xgboost as xgb
+from quantile_forest import RandomForestQuantileRegressor
+from scipy.stats import norm
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF
@@ -197,3 +200,60 @@ class TobitModel:
         y_pred, _ = self.model(X)
         y_pred = y_pred.detach().numpy()
         return y_pred
+
+
+def truncated_normal_mean(mu, sigma, C):
+    sigma = np.where(sigma > 1e-5, sigma, 1e-5)
+    alpha = (C - mu) / sigma
+    denominator = 1 - norm.cdf(alpha)
+    denominator = np.where(denominator > 1e-5, denominator, 1e-5)
+    trunc_mean = mu + sigma * norm.pdf(alpha) / denominator
+    return trunc_mean
+
+
+class SchmeeHahnQRF:
+    def __init__(
+        self,
+        k=10,
+        max_depth=32,
+        min_samples_split=2,
+        min_samples_leaf=1,
+        max_features=1.0,
+        ccp_alpha=0.001,
+        random_state=0,
+        n_jobs=-1,
+    ):
+        self.k = k
+        self.params = {
+            "max_depth": max_depth,
+            "min_samples_split": min_samples_split,
+            "min_samples_leaf": min_samples_leaf,
+            "max_features": max_features,
+            "ccp_alpha": ccp_alpha,
+            "random_state": random_state,
+            "n_jobs": n_jobs,
+        }
+
+    def fit(self, X, y, cut_off):
+        quantiles = np.linspace(0.01, 0.99, 99).tolist()
+        not_censored = y < cut_off
+
+        self.qrf = RandomForestQuantileRegressor(**self.params)
+        self.qrf.fit(X[not_censored], y[not_censored])
+
+        y_imputed = y.copy()
+
+        for i in range(self.k):
+            Y_pred = self.qrf.predict(X[~not_censored], quantiles=quantiles)
+            y_pred_mean = Y_pred.mean(axis=1)
+            y_pred_std = (Y_pred[:, 83] - Y_pred[:, 15]) / 2
+            y_imputed[~not_censored] = truncated_normal_mean(
+                y_pred_mean, y_pred_std, cut_off[~not_censored]
+            )
+
+            self.qrf = RandomForestQuantileRegressor(**self.params)
+            self.qrf.fit(X, y_imputed)
+        return self
+
+    def predict(self, X, cut_off):
+        return self.qrf.predict(X, quantiles=0.5)
