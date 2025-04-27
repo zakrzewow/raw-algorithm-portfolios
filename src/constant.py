@@ -27,7 +27,6 @@ R_HOME = Path.home() / "miniconda3" / "envs" / "SMAC" / "lib" / "R"
 # TSP
 LKH_PATH = SOLVER_DIR / "LKH"
 CONCORDE_PATH = SOLVER_DIR / "concorde"
-UBC_TSP_FEATURE_PATH = SOLVER_DIR / "TSP-feature"
 
 IS_WINDOWS = os.name == "nt"
 # if IS_WINDOWS:

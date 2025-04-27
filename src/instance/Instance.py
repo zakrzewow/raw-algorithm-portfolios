@@ -74,10 +74,6 @@ class Instance(ABC):
     def _calculate_features(cls, instance: "Instance") -> ResultWithTime:
         pass
 
-    @abstractmethod
-    def mutate(self) -> ResultWithTime:
-        pass
-
     @property
     def features_calculated(self):
         return len(self.features) > 0

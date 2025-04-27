@@ -4,17 +4,9 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
-from src.constant import (
-    CONCORDE_PATH,
-    DATA_DIR,
-    IS_WINDOWS,
-    SEED,
-    TEMP_DIR,
-    UBC_TSP_FEATURE_PATH,
-)
+from src.constant import CONCORDE_PATH, DATA_DIR, IS_WINDOWS, TEMP_DIR
 from src.database import DB
 from src.instance.Instance import Instance
 from src.instance.InstanceList import InstanceList
@@ -88,56 +80,6 @@ class TSP_Instance(Instance):
         "nnds_sd": 0.0,
         "nnds_span": 0.0,
         "nnds_coef_of_var": 0.0,
-        # "num_nodes": 0.0,
-        # "cost_matrix_avg": 0.0,
-        # "cost_matrix_std": 0.0,
-        # "cost_matrix_skew": 0.0,
-        # "stdTime": 0.0,
-        # "mst_length": 0.0,
-        # "mst_length_avg": 0.0,
-        # "mst_length_std": 0.0,
-        # "mst_length_skew": 0.0,
-        # "mst_degree_avg": 0.0,
-        # "mst_degree_std": 0.0,
-        # "mst_degree_skew": 0.0,
-        # "mstTime": 0.0,
-        # "cluster_distance_avg": 0.0,
-        # "cluster_distance_std": 0.0,
-        # "cluster_distance_skew": 0.0,
-        # "clusterTime": 0.0,
-        # "tour_const_heu_avg": 0.0,
-        # "tour_const_std": 0.0,
-        # "tour_const_skew": 0.0,
-        # "ls_impov_per_step_avg": 0.0,
-        # "ls_impov_per_step_std": 0.0,
-        # "ls_impov_per_step_skew": 0.0,
-        # "ls_steps_2lm_avg": 0.0,
-        # "ls_steps_2lm_std": 0.0,
-        # "ls_steps_2lm_skew": 0.0,
-        # "ls_maxdist_avg": 0.0,
-        # "ls_maxdist_std": 0.0,
-        # "ls_maxdist_skew": 0.0,
-        # "ls_bestsol_avg": 0.0,
-        # "ls_bestsol_std": 0.0,
-        # "ls_bestsol_skew": 0.0,
-        # "ls_backbone_avg": 0.0,
-        # "ls_backbone_std": 0.0,
-        # "ls_backbone_skew": 0.0,
-        # "lpTime": 0.0,
-        # "bc_improv_per_cut_avg": 0.0,
-        # "bc_improv_per_cut_std": 0.0,
-        # "bc_improv_per_cut_skew": 0.0,
-        # "bc_upper_lower_ratio": 0.0,
-        # "bc_no1s_min": 0.0,
-        # "bc_no1s_q25": 0.0,
-        # "bc_no1s_q50": 0.0,
-        # "bc_no1s_q75": 0.0,
-        # "bc_no1s_max": 0.0,
-        # "bc_p1s": 0.0,
-        # "bc_pn1s": 0.0,
-        # "bcTime": 0.0,
-        # "acc": 0.0,
-        # "acfTime": 0.0,
     }
 
     def __init__(
@@ -158,6 +100,19 @@ class TSP_Instance(Instance):
         str_ = f"TSP_Instance(filepath={filepath})"
         return str_
 
+    @classmethod
+    def from_db(cls, id_: str) -> "TSP_Instance":
+        dict_ = DB().select_id(DB.SCHEMA.INSTANCES, id_)
+        filepath = DATA_DIR / dict_["filepath"]
+        optimum = dict_["optimum"]
+        max_cost = dict_["max_cost"]
+        max_time = dict_["max_time"]
+        instance = cls(filepath, optimum, max_cost, max_time)
+        del dict_["filepath"]
+        del dict_["optimum"]
+        instance.features = dict_
+        return instance
+
     def to_dict(self) -> dict:
         return {
             "filepath": self._get_short_filepath(),
@@ -174,24 +129,9 @@ class TSP_Instance(Instance):
         return filepath
 
     @classmethod
-    def from_db(cls, id_: str) -> "TSP_Instance":
-        dict_ = DB().select_id(DB.SCHEMA.INSTANCES, id_)
-        filepath = DATA_DIR / dict_["filepath"]
-        optimum = dict_["optimum"]
-        max_cost = dict_["max_cost"]
-        max_time = dict_["max_time"]
-        instance = cls(filepath, optimum, max_cost, max_time)
-        del dict_["filepath"]
-        del dict_["optimum"]
-        instance.features = dict_
-        return instance
-
-    @classmethod
     def _calculate_features(cls, instance: "Instance") -> ResultWithTime:
         with Timer() as timer:
             tspmeta_features = instance._calculate_tspmeta_features()
-            # ubc_features = instance._calculate_ubc_features()
-            # features = {**instance.FEATURES, **tspmeta_features, **ubc_features}
             features = {**instance.FEATURES, **tspmeta_features}
         return ResultWithTime(features, timer.elapsed_time)
 
@@ -207,68 +147,6 @@ class TSP_Instance(Instance):
         except Exception as e:
             logger.error(f"[{self}] error calculating tspmeta features: {e}")
             return {}
-
-    def _calculate_ubc_features(self) -> dict:
-        if IS_WINDOWS:
-            return {}
-
-        try:
-            logger.debug(f"[{self}] starting...")
-            result = subprocess.run(
-                [UBC_TSP_FEATURE_PATH, "-all", self.filepath],
-                capture_output=True,
-                text=True,
-            )
-            logger.debug(f"[{self}] result={result}")
-            output = result.stdout.strip().splitlines()
-            for line in output:
-                logger.debug(f"[{self}] {line}")
-
-            header = output[0].split(",")
-            values = output[1].split(",")
-
-            feature_dict = {header[i]: float(values[i]) for i in range(len(header))}
-            return feature_dict
-        except Exception as e:
-            logger.error(f"[{self}] error calculating UBC features: {e}")
-            return {}
-
-    def mutate(self) -> ResultWithTime:
-        df = self._read_file_to_df()
-        x_min, x_max = df["X"].min(), df["X"].max()
-        y_min, y_max = df["Y"].min(), df["Y"].max()
-
-        do_shift = self._rng.binomial(1, 0.9, size=df.shape[0])
-        df.loc[do_shift == 1, "X"] += self._rng.normal(
-            0, 0.025 * (x_max - x_min), size=(do_shift == 1).sum()
-        ).round(0)
-        df.loc[do_shift == 1, "Y"] += self._rng.normal(
-            0, 0.025 * (y_max - y_min), size=(do_shift == 1).sum()
-        ).round(0)
-        df.loc[do_shift == 0, "X"] = self._rng.uniform(
-            x_min, x_max, size=(do_shift == 0).sum()
-        ).round(0)
-        df.loc[do_shift == 0, "Y"] = self._rng.uniform(
-            y_min, y_max, size=(do_shift == 0).sum()
-        ).round(0)
-
-        dir_ = DATA_DIR / "TSP" / "CEPS_generated"
-        idx = len(list(dir_.glob("*.tsp")))
-        out_filepath = dir_ / f"{idx}.tsp"
-
-        with open(out_filepath, "w") as file:
-            file.write(f"NAME : MUTATED[{self}]\n")
-            file.write(f"TYPE : TSP\n")
-            file.write(f"DIMENSION : {df.shape[0]}\n")
-            file.write(f"EDGE_WEIGHT_TYPE : EUC_2D\n")
-            file.write(f"NODE_COORD_SECTION\n")
-            for node, x, y in df.itertuples():
-                file.write(f"{node} {x:.0f} {y:.0f}\n")
-            file.write("EOF\n")
-        instance = TSP_Instance(out_filepath, 0, self.max_cost, self.max_time)
-        optimum, time = instance._get_optimum_with_concorde()
-        instance.optimum = optimum
-        return ResultWithTime(instance, time)
 
     def _read_file_to_df(self) -> pd.DataFrame:
         coordinates = []
@@ -364,20 +242,3 @@ def TSP_from_index_file(
         instance = TSP_Instance(filepath, v, max_cost, max_time)
         instances.append(instance)
     return instances
-
-
-def TSP_train_test_from_index_file(
-    filepath: Path,
-    train_size: int,
-    max_cost: float,
-    max_time: float,
-) -> tuple[InstanceList, InstanceList]:
-    train_instances = InstanceList()
-    test_instances = InstanceList()
-    instances = TSP_from_index_file(filepath, max_cost, max_time)
-
-    rng = np.random.default_rng(SEED)
-    rng.shuffle(instances)
-    train_instances.extend(instances[:train_size])
-    test_instances.extend(instances[train_size:])
-    return train_instances, test_instances

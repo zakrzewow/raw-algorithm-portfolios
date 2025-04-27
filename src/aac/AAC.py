@@ -38,6 +38,7 @@ class AAC:
         self._smac = self._get_smac_algorithm_configuration_facade(i)
         self._calculate_features = calculate_features
         self._estimator = estimator
+        self.incumbent_cost = np.inf
 
     def __del__(self):
         self.__cleanup_temp_dir()
@@ -113,6 +114,7 @@ class AAC:
             )
             trial_value = TrialValue(cost=result.cost)
             self._smac.tell(trial_info, trial_value)
+            self._update_incumbent_cost(result.cost)
             self._update_configuration_time(result.time)
             yield self._portfolio
             self._next_iteration()
@@ -142,6 +144,10 @@ class AAC:
 
     def _get_iteration_prefix(self):
         return f"{self._prefix};aac_iter={self.iter}"
+
+    def _update_incumbent_cost(self, cost: float):
+        if cost < self.incumbent_cost:
+            self.incumbent_cost = cost
 
     def _update_configuration_time(self, time: np.array):
         self._configuration_time -= time
