@@ -1,6 +1,6 @@
 library(netgen)
 
-n_instances <- 5L
+n_instances <- 200L
 output_dir <- "./uniform_portgen"
 dir.create(file.path(output_dir), showWarnings = FALSE, recursive = TRUE)
 
