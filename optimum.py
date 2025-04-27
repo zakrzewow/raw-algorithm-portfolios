@@ -24,5 +24,5 @@ if __name__ == "__main__":
         key = instance._get_short_filepath()
         dict_[key] = optimum
 
-    with open(DATA_DIR / "TSP" / "TRAIN" / "index.json", "w") as f:
+    with open(DATA_DIR / "TSP" / "TEST" / "index.json", "w") as f:
         json.dump(dict_, f, indent=4)
