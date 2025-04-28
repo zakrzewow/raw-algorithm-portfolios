@@ -131,8 +131,6 @@ class Solver(ABC):
                     surrogate=False,
                     error=False,
                 )
-                result.cut_off_cost = dict_["cut_off_time"]
-                result.cut_off_time = dict_["cut_off_time"]
                 return result
             return None
 

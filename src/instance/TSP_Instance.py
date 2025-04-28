@@ -128,6 +128,10 @@ class TSP_Instance(Instance):
     def tsp_generator(self) -> str:
         return self.filepath.parts[-2]
 
+    @property
+    def n_cities(self) -> int:
+        return self._read_file_to_df().shape[0]
+
     @classmethod
     def _calculate_features(cls, instance: "Instance") -> ResultWithTime:
         with Timer() as timer:
