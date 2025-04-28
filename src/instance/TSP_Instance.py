@@ -86,14 +86,14 @@ class TSP_Instance(Instance):
         self,
         filepath: Path,
         optimum: float,
-        max_cost: float = 0,
-        max_time: float = 0,
+        cut_off_cost: float = 0,
+        cut_off_time: float = 0,
     ):
         super().__init__()
         self.filepath = filepath
         self.optimum = optimum
-        self.max_cost = max_cost
-        self.max_time = max_time
+        self.cut_off_cost = cut_off_cost
+        self.cut_off_time = cut_off_time
 
     def __repr__(self):
         filepath = self._get_short_filepath()
@@ -105,9 +105,7 @@ class TSP_Instance(Instance):
         dict_ = DB().select_id(DB.SCHEMA.INSTANCES, id_)
         filepath = DATA_DIR / dict_["filepath"]
         optimum = dict_["optimum"]
-        max_cost = dict_["max_cost"]
-        max_time = dict_["max_time"]
-        instance = cls(filepath, optimum, max_cost, max_time)
+        instance = cls(filepath, optimum)
         del dict_["filepath"]
         del dict_["optimum"]
         instance.features = dict_
@@ -117,8 +115,6 @@ class TSP_Instance(Instance):
         return {
             "filepath": self._get_short_filepath(),
             "optimum": self.optimum,
-            "max_cost": self.max_cost,
-            "max_time": self.max_time,
             **self.features,
         }
 
@@ -127,6 +123,10 @@ class TSP_Instance(Instance):
         data_dir_parts = DATA_DIR.parts
         filepath = "/".join(path_parts[len(data_dir_parts) :])
         return filepath
+
+    @property
+    def tsp_generator(self) -> str:
+        return self.filepath.parts[-2]
 
     @classmethod
     def _calculate_features(cls, instance: "Instance") -> ResultWithTime:
@@ -229,8 +229,9 @@ class TSP_Instance(Instance):
 
 def TSP_from_index_file(
     filepath: Path,
-    max_cost: float = 0.0,
-    max_time: float = 0.0,
+    cut_off_cost: float = 0.0,
+    cut_off_time: float = 0.0,
+    n: int = None,
 ) -> InstanceList:
     instances = InstanceList()
 
@@ -239,6 +240,24 @@ def TSP_from_index_file(
 
     for k, v in index.items():
         filepath = DATA_DIR / Path(k)
-        instance = TSP_Instance(filepath, v, max_cost, max_time)
+        instance = TSP_Instance(filepath, v, cut_off_cost, cut_off_time)
         instances.append(instance)
+
+    if n is not None:
+        tsp_generators = set([instance.tsp_generator for instance in instances])
+        n_generators = len(tsp_generators)
+
+        if n % n_generators != 0:
+            raise ValueError(f"{n=} must be divisible by the number of {n_generators=}")
+
+        instances_per_generator = len(instances) // n_generators
+        samples_per_generator = n // n_generators
+
+        new_instances = InstanceList()
+        for i in range(n_generators):
+            start_idx = i * instances_per_generator
+            end_idx = start_idx + samples_per_generator
+            new_instances.extend(instances[start_idx:end_idx])
+        instances = new_instances
+
     return instances

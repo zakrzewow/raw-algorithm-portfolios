@@ -16,8 +16,8 @@ class Instance(ABC):
     def __init__(self):
         self.features = {}
         self._rng = np.random.default_rng(SEED)
-        self.max_cost = 0.0
-        self.max_time = 0.0
+        self.cut_off_cost = 0.0
+        self.cut_off_time = 0.0
 
     def __eq__(self, other):
         return hash(self) == hash(other)

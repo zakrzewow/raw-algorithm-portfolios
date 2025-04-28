@@ -31,14 +31,14 @@ class TSP_LKH_Solver(Solver):
                 capture_output=True,
                 text=True,
                 stdin=subprocess.DEVNULL,
-                timeout=instance.max_time + 5,
+                timeout=instance.cut_off_time + 5,
             )
             time = solver._parse_result(result, instance)
-            cost = time if time < instance.max_time else instance.max_cost
+            cost = time if time < instance.cut_off_time else instance.cut_off_cost
             error = False
         except subprocess.TimeoutExpired:
-            time = instance.max_time
-            cost = instance.max_cost
+            time = instance.cut_off_time
+            cost = instance.cut_off_cost
             error = True
         time += features_time
         solver._remove_config_file(config_filepath)
@@ -50,8 +50,8 @@ class TSP_LKH_Solver(Solver):
             f.write(f"PROBLEM_FILE = {instance.filepath}\n")
             f.write(f"OPTIMUM = {instance.optimum}\n")
             f.write(f"TRACE_LEVEL = 0\n")
-            f.write(f"TOTAL_TIME_LIMIT = {instance.max_time}\n")
-            f.write(f"TIME_LIMIT = {instance.max_time}\n")
+            f.write(f"TOTAL_TIME_LIMIT = {instance.cut_off_time}\n")
+            f.write(f"TIME_LIMIT = {instance.cut_off_time}\n")
             f.write(f"STOP_AT_OPTIMUM = YES\n")
             f.write(f"RUNS = 10000\n")
             f.write(f"SEED = {SEED}\n")
@@ -71,7 +71,7 @@ class TSP_LKH_Solver(Solver):
                 break
         if time is None:
             raise Exception("Time.total not found")
-        return min(time, instance.max_time)
+        return min(time, instance.cut_off_time)
 
     def _remove_config_file(self, config_filepath: Path):
         config_filepath.unlink(missing_ok=True)

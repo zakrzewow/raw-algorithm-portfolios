@@ -79,6 +79,8 @@ class Solver(ABC):
             self.instance = instance
             self.cost = cost
             self.time = time
+            self.cut_off_cost = self.instance.cut_off_cost
+            self.cut_off_time = self.instance.cut_off_time
             self.cached = cached
             self.surrogate = surrogate
             self.error = error
@@ -91,6 +93,8 @@ class Solver(ABC):
                 f"instance={self.instance}, "
                 f"cost={self.cost:.2f}, "
                 f"time={self.time:.2f}, "
+                f"cut_off_cost={self.cut_off_cost:.2f}, "
+                f"cut_off_time={self.cut_off_time:.2f}, "
                 f"cached={self.cached}, "
                 f"surrogate={self.surrogate}, "
                 f"error={self.error})"
@@ -127,6 +131,8 @@ class Solver(ABC):
                     surrogate=False,
                     error=False,
                 )
+                result.cut_off_cost = dict_["cut_off_time"]
+                result.cut_off_time = dict_["cut_off_time"]
                 return result
             return None
 
@@ -158,6 +164,8 @@ class Solver(ABC):
                 "instance_id": self.instance.id(),
                 "cost": self.cost,
                 "time": self.time,
+                "cut_off_cost": self.instance.cut_off_cost,
+                "cut_off_time": self.instance.cut_off_time,
                 "cached": self.cached,
                 "surrogate": self.surrogate,
                 "error": self.error,
@@ -199,8 +207,8 @@ class Solver(ABC):
                 prefix=prefix,
                 solver=solver,
                 instance=instance,
-                cost=instance.max_cost,
-                time=instance.max_time,
+                cost=instance.cut_off_cost,
+                time=instance.cut_off_time,
                 cached=False,
                 surrogate=False,
                 error=True,

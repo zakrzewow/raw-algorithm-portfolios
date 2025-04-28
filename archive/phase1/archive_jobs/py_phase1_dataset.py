@@ -18,8 +18,8 @@ if __name__ == "__main__":
 
     instances = TSP_from_index_file(
         filepath=DATA_DIR / "TSP" / "TRAIN" / "index.json",
-        max_cost=3000.0,
-        max_time=300.0,
+        cut_off_cost=3000.0,
+        cut_off_time=300.0,
     )
     instances = instances[i : i + 20]
 
