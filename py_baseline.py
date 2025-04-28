@@ -59,7 +59,7 @@ if __name__ == "__main__":
                 estimator=None,
             )
             portfolio = aac.configure()
-            result = portfolio.evaluate(
+            result = portfolio.evaluate(  # fix cut-off times before validation
                 instance_list=train_instances,
                 prefix=f"validate;solver={solver_i+1};attempt={attempt_i+1}",
                 cache=True,

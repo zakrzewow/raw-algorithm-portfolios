@@ -8,7 +8,7 @@ from smac import AlgorithmConfigurationFacade, Scenario
 from smac.initial_design import RandomInitialDesign
 from smac.runhistory.dataclasses import TrialValue
 
-from src.aac.SurrogateEstimator import SurrogateEstimator
+from src.aac.SurrogatePolicy import EmptySurrogatePolicy, SurrogatePolicy
 from src.constant import SEED, TEMP_DIR
 from src.instance.InstanceList import InstanceList
 from src.log import logger
@@ -16,7 +16,6 @@ from src.solver.Portfolio import Portfolio
 
 
 class AAC:
-
     def __init__(
         self,
         portfolio: Portfolio,
@@ -26,38 +25,28 @@ class AAC:
         max_iter: int = None,
         i: int = None,
         calculate_features: bool = False,
-        estimator: SurrogateEstimator = None,
+        surrogate_policy: SurrogatePolicy = EmptySurrogatePolicy(),
     ):
         self._portfolio = portfolio
         self._instance_list = instance_list
         self._prefix = prefix
         self._t_c = t_c
-        self._configuration_time = self._get_configuration_time()
         self._max_iter = max_iter
         self.iter = 1
         self._smac = self._get_smac_algorithm_configuration_facade(i)
         self._calculate_features = calculate_features
-        self._estimator = estimator
+        self._surrogate_policy = surrogate_policy
         self.incumbent_cost = np.inf
 
     def __del__(self):
         self.__cleanup_temp_dir()
 
     def __repr__(self):
-        time_formatted = np.array2string(
-            self._configuration_time,
-            precision=2,
-            floatmode="fixed",
-        )
-        str_ = f"AAC(prefix={self._prefix}, iter={self.iter}, configuration_time={time_formatted})"
+        str_ = f"AAC(prefix={self._prefix}, iter={self.iter}/{self._max_iter})"
         return str_
 
     def log(self):
         logger.debug(self.__repr__())
-
-    def _get_configuration_time(self):
-        configuration_time = np.ones(shape=(self._portfolio.size,)) * self._t_c
-        return configuration_time
 
     def _get_smac_algorithm_configuration_facade(self, i: int):
         self.__set_temp_dir()
@@ -101,21 +90,29 @@ class AAC:
             self.__temp_dir_path = None
 
     def configure_iter(self) -> Generator[Portfolio, None, Portfolio]:
-        while self._configuration_time_remains():
+        while self._iteration_remains():
             self.log()
             trial_info = self._smac.ask()
             self._portfolio.update_solvers(trial_info.config)
+            self._surrogate_policy.notify_iter(self.iter, self._max_iter)
             result = self._portfolio.evaluate(
                 instance_list=self._instance_list,
                 prefix=self._get_iteration_prefix(),
                 calculate_features=self._calculate_features,
                 cache=True,
-                estimator=self._estimator,
+                surrogate_policy=self._surrogate_policy,
             )
+            if self._surrogate_policy.should_reevaluate_portfolio(
+                result,
+                self.incumbent_cost,
+            ):
+                result = self._portfolio.evaluate(
+                    instance_list=self._instance_list,
+                    prefix=self._get_iteration_prefix() + ";reevaluate",
+                )
             trial_value = TrialValue(cost=result.cost)
             self._smac.tell(trial_info, trial_value)
             self._update_incumbent_cost(result.cost)
-            self._update_configuration_time(result.time)
             yield self._portfolio
             self._next_iteration()
         self._update_portfolio_with_incumbent()
@@ -130,17 +127,12 @@ class AAC:
     def update(
         self,
         instance_list: InstanceList = None,
-        estimator: SurrogateEstimator = None,
     ):
         if instance_list is not None:
             self._instance_list = instance_list
-        if estimator is not None:
-            self._estimator = estimator
 
-    def _configuration_time_remains(self):
-        return (self._configuration_time > 0).all() and (
-            self._max_iter is None or self.iter <= self._max_iter
-        )
+    def _iteration_remains(self):
+        return self.iter <= self._max_iter
 
     def _get_iteration_prefix(self):
         return f"{self._prefix};aac_iter={self.iter}"
@@ -149,15 +141,9 @@ class AAC:
         if cost < self.incumbent_cost:
             self.incumbent_cost = cost
 
-    def _update_configuration_time(self, time: np.array):
-        self._configuration_time -= time
-
     def _next_iteration(self):
         self.iter += 1
 
     def _update_portfolio_with_incumbent(self):
         incumbent = self._smac.intensifier.get_incumbent()
         self._portfolio.update_solvers(incumbent)
-
-    def get_progress(self) -> float:
-        return 1 - self._configuration_time.min() / self._t_c

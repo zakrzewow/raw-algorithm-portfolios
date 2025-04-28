@@ -5,7 +5,7 @@ from typing import Iterable, Type
 import numpy as np
 from ConfigSpace import Configuration, ConfigurationSpace
 
-from src.aac.SurrogateEstimator import SurrogateEstimator
+from src.aac.SurrogatePolicy import EmptySurrogatePolicy, SurrogatePolicy
 from src.constant import MAX_WORKERS
 from src.instance.InstanceList import InstanceList
 from src.log import logger
@@ -120,25 +120,39 @@ class Portfolio(list):
         prefix: str,
         calculate_features: bool = False,
         cache: bool = True,
-        estimator: SurrogateEstimator = None,
+        surrogate_policy: SurrogatePolicy = EmptySurrogatePolicy(),
     ) -> Result:
         logger.debug(f"Portfolio.evaluate({prefix})")
         self.log()
-
         executor = concurrent.futures.ProcessPoolExecutor(max_workers=MAX_WORKERS)
         result = self.Result(self, instance_list, prefix=prefix)
+
+        for instance in instance_list:
+            for solver in self:
+                if surrogate_policy.should_estimate(solver, instance):
+                    future = solver.solve(
+                        instance,
+                        prefix + ";surrogate",
+                        calculate_features=calculate_features,
+                        cache=cache,
+                        estimator=surrogate_policy.get_estimator(),
+                    )
+                    solver_result = future.result()
+                    result.update(solver_result)
+                    surrogate_policy.digest_results(solver_result)
+
         futures = []
         for instance in instance_list:
             for solver in self:
-                future = solver.solve(
-                    instance,
-                    prefix,
-                    calculate_features=calculate_features,
-                    cache=cache,
-                    estimator=SurrogateEstimator.get_or_none(estimator),
-                    executor=executor,
-                )
-                futures.append((instance, solver, future))
+                if surrogate_policy.should_reevaluate(solver, instance):
+                    future = solver.solve(
+                        instance,
+                        prefix,
+                        calculate_features=calculate_features,
+                        cache=cache,
+                        executor=executor,
+                    )
+                    futures.append((instance, solver, future))
 
         for instance, solver, future in futures:
             solver_result = future.result()
