@@ -56,7 +56,6 @@ if __name__ == "__main__":
                 max_iter=MAX_ITER,
                 i=solver_i,
                 calculate_features=False,
-                estimator=None,
             )
             portfolio = aac.configure()
             result = portfolio.evaluate(  # fix cut-off times before validation
