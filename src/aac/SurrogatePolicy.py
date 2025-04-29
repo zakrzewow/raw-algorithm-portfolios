@@ -1,3 +1,5 @@
+from src.database.queries import get_solvers_count
+
 if __name__ == "__main__":
     from src.instance.Instance import Instance
     from src.solver.Portfolio import Portfolio
@@ -31,9 +33,24 @@ class EmptySurrogatePolicy:
 class SurrogatePolicy(EmptySurrogatePolicy):
     def __init__(
         self,
-        surrogate_estimator_class: type,
+        estimator_class: type,
+        first_fit_solver_count: int,
+        refit_solver_count: int
     ):
-        self.surrogate_estimator_class = surrogate_estimator_class
+        self.estimator_class = estimator_class
+        self.first_fit_solver_count = first_fit_solver_count
+        self.refit_solver_count = refit_solver_count
+        self.last_fit_solver_count = 0
+        self.estimator = None
+
+    def notify_iter(self):
+        solver_count = get_solvers_count()
+        if self.estimator is None and solver_count > self.first_fit_solver_count:
+            self.last_fit_solver_count = solver_count
+            self.estimator = self.estimator_class()
+            # TODO: fit estimator
+        
+    
 
 
 class IterationSurrogatePolicyA(SurrogatePolicy):
@@ -50,9 +67,6 @@ class IterationSurrogatePolicyA(SurrogatePolicy):
 
     def should_reevaluate(self, solver: "Solver", instance: "Instance"):
         return True
-
-    def notify_iter(self, iter: int, max_iter: int):
-        pass
 
     def should_reevaluate_portfolio(
         self,
