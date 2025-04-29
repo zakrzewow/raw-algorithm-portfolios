@@ -1,33 +1,19 @@
 import numpy as np
 
 from src.aac.AAC import AAC
-from src.constant import DATA_DIR
-from src.instance.TSP_Instance import TSP_from_index_file
+from src.instance.TSP_Instance import set_n22_cut_off_time
 from src.log import logger
 from src.solver.Portfolio import Portfolio
 from src.solver.TSP_LKH_Solver import TSP_LKH_Solver
 
-if __name__ == "__main__":
-    train_instances = TSP_from_index_file(
-        filepath=DATA_DIR / "TSP" / "TRAIN" / "index.json",
-        cut_off_cost=100,
-        cut_off_time=10,
-        n=25,
-    )
-    test_instances = TSP_from_index_file(
-        filepath=DATA_DIR / "TSP" / "TEST" / "index.json",
-        cut_off_cost=1000,
-        cut_off_time=100,
-        n=250,
-    )
-    for instance in train_instances:
-        instance.cut_off_time = round(10 * ((instance.n_cities / 600) ** 2.2), 2)
-        instance.cut_off_cost = 10 * instance.cut_off_time
 
-    SOLVERS_N = 2
-    ATTEMPTS_N = 3
-    MAX_ITER = 25
-
+def parhydra(
+    train_instances,
+    surrogate_policy,
+    SOLVERS_N,
+    ATTEMPTS_N,
+    MAX_ITER,
+):
     solvers = []
     largest_marginal_contribution_solver = None
 
@@ -55,12 +41,15 @@ if __name__ == "__main__":
                 prefix=f"config;solver={solver_i+1};attempt={attempt_i+1}",
                 max_iter=MAX_ITER,
                 i=solver_i,
-                calculate_features=False,
+                calculate_features=True,
+                surrogate_policy=surrogate_policy,
             )
             portfolio = aac.configure()
-            result = portfolio.evaluate(  # fix cut-off times before validation
+            set_n22_cut_off_time(train_instances, reference_cut_off_time=10.0)
+            result = portfolio.evaluate(
                 instance_list=train_instances,
                 prefix=f"validate;solver={solver_i+1};attempt={attempt_i+1}",
+                calculate_features=True,
                 cache=True,
             )
             attempt_solvers.append(portfolio[solver_i])
@@ -82,7 +71,8 @@ if __name__ == "__main__":
                     portfolio = Portfolio.from_iterable(solvers + [solver])
                     result = portfolio.evaluate(
                         instance_list=train_instances,
-                        prefix=f"largest_marginal_contribution;solver={solver_i+1};attempt={attempt_i+1}",
+                        prefix=f"largest_marginal_contribution;attempt={attempt_i+1}",
+                        calculate_features=True,
                         cache=True,
                     )
                     if result.cost < best_cost:
@@ -90,10 +80,4 @@ if __name__ == "__main__":
                         largest_marginal_contribution_solver = solver
 
     portfolio = Portfolio.from_iterable(solvers)
-    for i in range(5):
-        portfolio.evaluate(
-            test_instances,
-            prefix=f"test{i}",
-            calculate_features=False,
-            cache=False,
-        )
+    return portfolio

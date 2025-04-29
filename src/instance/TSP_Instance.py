@@ -265,3 +265,15 @@ def TSP_from_index_file(
         instances = new_instances
 
     return instances
+
+
+def set_n22_cut_off_time(
+    instances: InstanceList,
+    reference_cut_off_time: float = 10.0,
+):
+    for instance in instances:
+        instance.cut_off_time = round(
+            reference_cut_off_time * ((instance.n_cities / 600) ** 2.2), 2
+        )
+        instance.cut_off_cost = 10 * instance.cut_off_time
+    return instances

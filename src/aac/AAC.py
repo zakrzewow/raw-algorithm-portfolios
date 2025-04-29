@@ -94,7 +94,7 @@ class AAC:
             self.log()
             trial_info = self._smac.ask()
             self._portfolio.update_solvers(trial_info.config)
-            self._surrogate_policy.notify_iter()
+            self._surrogate_policy.notify_iter(self.iter)
             result = self._portfolio.evaluate(
                 instance_list=self._instance_list,
                 prefix=self._get_iteration_prefix(),
@@ -108,7 +108,7 @@ class AAC:
             ):
                 result = self._portfolio.evaluate(
                     instance_list=self._instance_list,
-                    prefix=self._get_iteration_prefix(),
+                    prefix=self._get_iteration_prefix() + ";reevaluate",
                 )
             trial_value = TrialValue(cost=result.cost)
             self._smac.tell(trial_info, trial_value)

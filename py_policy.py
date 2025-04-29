@@ -1,0 +1,92 @@
+import os
+import pickle
+
+from src.constant import DATA_DIR, MAIN_DIR
+from src.experiment import parhydra
+from src.instance.TSP_Instance import TSP_from_index_file, set_n22_cut_off_time
+from src.surrogate.SurrogatePolicy import (
+    EmptySurrogatePolicy,
+    EvaluationSurrogatePolicyA,
+    EvaluationSurrogatePolicyB,
+    EvaluationSurrogatePolicyC,
+    IterationSurrogatePolicyA,
+    IterationSurrogatePolicyB,
+)
+from src.surrogate.wrapper import SurvivalFunctionWrapper
+
+if __name__ == "__main__":
+    train_instances = TSP_from_index_file(
+        filepath=DATA_DIR / "TSP" / "TRAIN" / "index.json",
+        cut_off_cost=100,
+        cut_off_time=10,
+        n=25,
+    )
+    test_instances = TSP_from_index_file(
+        filepath=DATA_DIR / "TSP" / "TEST" / "index.json",
+        cut_off_cost=1000,
+        cut_off_time=100,
+        n=250,
+    )
+    train_instances = set_n22_cut_off_time(train_instances, reference_cut_off_time=10.0)
+
+    with open(
+        MAIN_DIR
+        / "archive"
+        / "phase1"
+        / "results"
+        / "permutation"
+        / "HO"
+        / "coxph_incumbent.pkl",
+        "rb",
+    ) as f:
+        coxph_incumbent = pickle.load(f)
+    POLICY_KWARGS = {
+        "estimator_wrapper": SurvivalFunctionWrapper(**coxph_incumbent),
+        "first_fit_solver_count": 10,
+        "refit_solver_count": 5,
+    }
+
+    POLICY = os.environ.get("POLICY", "").strip()
+    if POLICY == "I_A":
+        surrogate_policy = EvaluationSurrogatePolicyA(
+            **POLICY_KWARGS,
+            pct_chance=0.5,
+        )
+    elif POLICY == "E_B":
+        surrogate_policy = EvaluationSurrogatePolicyB(
+            **POLICY_KWARGS,
+            reevaluate_pct=0.5,
+        )
+    elif POLICY == "E_C":
+        surrogate_policy = EvaluationSurrogatePolicyC(
+            **POLICY_KWARGS,
+            reevaluate_factor=1.0,
+        )
+    elif POLICY == "I_A":
+        surrogate_policy = IterationSurrogatePolicyA(
+            **POLICY_KWARGS,
+            iter_diff=2,
+        )
+    elif POLICY == "I_B":
+        surrogate_policy = IterationSurrogatePolicyB(**POLICY_KWARGS)
+    else:
+        surrogate_policy = EmptySurrogatePolicy()
+
+    SOLVERS_N = 2
+    ATTEMPTS_N = 3
+    MAX_ITER = 25
+
+    portfolio = parhydra(
+        train_instances=train_instances,
+        surrogate_policy=surrogate_policy,
+        SOLVERS_N=SOLVERS_N,
+        ATTEMPTS_N=ATTEMPTS_N,
+        MAX_ITER=MAX_ITER,
+    )
+    for i in range(5):
+        portfolio.evaluate(
+            test_instances,
+            prefix=f"test{i}",
+            calculate_features=False,
+            cache=False,
+        )
