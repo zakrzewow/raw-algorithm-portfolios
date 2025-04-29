@@ -5,10 +5,10 @@ from concurrent.futures import Future, ProcessPoolExecutor
 import numpy as np
 from ConfigSpace import Configuration, ConfigurationSpace
 
-from src.aac.SurrogateEstimator import SurrogateEstimator
 from src.database import DB
 from src.instance.Instance import Instance
 from src.log import logger
+from src.surrogate.wrapper import BaseWrapper
 from src.utils import hash_str
 
 
@@ -176,12 +176,13 @@ class Solver(ABC):
             prefix: str,
             solver: "Solver",
             instance: Instance,
-            estimator: SurrogateEstimator,
+            estimator_wrapper: BaseWrapper,
             features_time: float = 0.0,
         ) -> "Solver.Result":
             X = np.concatenate([solver.get_array(), instance.get_array()])
             X = X.reshape(1, -1)
-            cost = estimator.predict(X)[0]
+            cut_off = np.array([instance.cut_off_cost])
+            cost = estimator_wrapper.predict(X, cut_off)[0]
             result = cls(
                 prefix=prefix,
                 solver=solver,
@@ -232,7 +233,7 @@ class Solver(ABC):
         prefix: str,
         calculate_features: bool = False,
         cache: bool = True,
-        estimator: SurrogateEstimator = None,
+        estimator_wrapper: BaseWrapper = None,
         executor: ProcessPoolExecutor = None,
     ) -> Future:
         logger.debug(f"solve(prefix={prefix}, solver={self}, instance={instance})")
@@ -255,12 +256,12 @@ class Solver(ABC):
                 return result.as_future()
 
         # surrogate estimation
-        if estimator is not None:
+        if estimator_wrapper is not None:
             result = self.Result.predict_with_estimator(
                 prefix,
                 self,
                 instance,
-                estimator,
+                estimator_wrapper,
                 features_time,
             )
             return result.as_future()

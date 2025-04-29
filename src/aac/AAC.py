@@ -8,11 +8,11 @@ from smac import AlgorithmConfigurationFacade, Scenario
 from smac.initial_design import RandomInitialDesign
 from smac.runhistory.dataclasses import TrialValue
 
-from src.aac.SurrogatePolicy import EmptySurrogatePolicy, SurrogatePolicy
 from src.constant import SEED, TEMP_DIR
 from src.instance.InstanceList import InstanceList
 from src.log import logger
 from src.solver.Portfolio import Portfolio
+from src.surrogate.SurrogatePolicy import EmptySurrogatePolicy, SurrogatePolicy
 
 
 class AAC:
@@ -94,7 +94,7 @@ class AAC:
             self.log()
             trial_info = self._smac.ask()
             self._portfolio.update_solvers(trial_info.config)
-            self._surrogate_policy.notify_iter(self.iter, self._max_iter)
+            self._surrogate_policy.notify_iter()
             result = self._portfolio.evaluate(
                 instance_list=self._instance_list,
                 prefix=self._get_iteration_prefix(),
@@ -108,7 +108,7 @@ class AAC:
             ):
                 result = self._portfolio.evaluate(
                     instance_list=self._instance_list,
-                    prefix=self._get_iteration_prefix() + ";reevaluate",
+                    prefix=self._get_iteration_prefix(),
                 )
             trial_value = TrialValue(cost=result.cost)
             self._smac.tell(trial_info, trial_value)

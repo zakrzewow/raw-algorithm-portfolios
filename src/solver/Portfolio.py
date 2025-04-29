@@ -5,11 +5,12 @@ from typing import Iterable, Type
 import numpy as np
 from ConfigSpace import Configuration, ConfigurationSpace
 
-from src.aac.SurrogatePolicy import EmptySurrogatePolicy, SurrogatePolicy
 from src.constant import MAX_WORKERS
+from src.instance.Instance import Instance
 from src.instance.InstanceList import InstanceList
 from src.log import logger
 from src.solver.Solver import Solver
+from src.surrogate.SurrogatePolicy import EmptySurrogatePolicy, SurrogatePolicy
 
 
 class Portfolio(list):
@@ -88,7 +89,7 @@ class Portfolio(list):
         ):
             self.prefix = prefix
             shape = (instance_list.size, portfolio.size)
-            self._costs = np.zeros(shape)
+            self._costs = np.full(shape, np.nan)
             self.time = np.zeros(portfolio.size)
             self.instance_sover_to_idx = {}
             for i, instance in enumerate(instance_list):
@@ -114,6 +115,11 @@ class Portfolio(list):
             self._costs[i, j] = result.cost
             self.time[j] += result.time
 
+        def has_cost_for(self, solver: "Solver", instance: "Instance") -> bool:
+            key = (instance.id(), solver.id())
+            i, j = self.instance_sover_to_idx[key]
+            return not np.isnan(self._costs[i, j])
+
     def evaluate(
         self,
         instance_list: InstanceList,
@@ -135,7 +141,7 @@ class Portfolio(list):
                         prefix + ";surrogate",
                         calculate_features=calculate_features,
                         cache=cache,
-                        estimator=surrogate_policy.get_estimator(),
+                        estimator_wrapper=surrogate_policy.estimator_wrapper,
                     )
                     solver_result = future.result()
                     result.update(solver_result)
@@ -144,7 +150,10 @@ class Portfolio(list):
         futures = []
         for instance in instance_list:
             for solver in self:
-                if surrogate_policy.should_reevaluate(solver, instance):
+                results_has_cost = result.has_cost_for(solver, instance)
+                should_reevaluate = surrogate_policy.should_reevaluate(solver, instance)
+
+                if not results_has_cost or should_reevaluate:
                     future = solver.solve(
                         instance,
                         prefix,
