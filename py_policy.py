@@ -47,7 +47,7 @@ if __name__ == "__main__":
     }
 
     POLICY = os.environ.get("POLICY", "").strip()
-    if POLICY == "I_A":
+    if POLICY == "E_A":
         surrogate_policy = EvaluationSurrogatePolicyA(
             **POLICY_KWARGS,
             pct_chance=0.5,
