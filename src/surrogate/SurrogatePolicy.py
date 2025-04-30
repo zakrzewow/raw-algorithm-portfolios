@@ -5,7 +5,8 @@ from src.constant import SEED
 from src.database.db import DB
 from src.database.queries import get_model_training_data, get_solvers_count
 from src.log import logger
-from src.surrogate.wrapper import BaseWrapper
+from src.surrogate.model import CoxPHSurvivalAnalysis, XGBRegressorAFT
+from src.surrogate.wrapper import SurvivalFunctionWrapper, XGBWrapper
 
 if __name__ == "__main__":
     from src.instance.Instance import Instance
@@ -46,15 +47,14 @@ class EmptySurrogatePolicy:
 class SurrogatePolicy(EmptySurrogatePolicy):
     def __init__(
         self,
-        estimator_wrapper: BaseWrapper,
         first_fit_solver_count: int,
         refit_solver_count: int,
     ):
-        self.estimator_wrapper = estimator_wrapper
         self.first_fit_solver_count = first_fit_solver_count
         self.refit_solver_count = refit_solver_count
         self.last_fit_solver_count = 0
         self.is_fitted = False
+        self.estimator_wrapper = None
 
     def __repr__(self):
         str_ = (
@@ -83,6 +83,32 @@ class SurrogatePolicy(EmptySurrogatePolicy):
 
     def refit_estimator(self):
         self.is_fitted = True
+        if self.last_fit_solver_count <= 20:
+            self.estimator_wrapper = SurvivalFunctionWrapper(
+                model_cls=CoxPHSurvivalAnalysis,
+                risk_function="polynomial",
+                risk_alpha=0.55,
+                ties="breslow",
+                alpha=13.69,
+            )
+        else:
+            self.estimator_wrapper = XGBWrapper(
+                model_cls=XGBRegressorAFT,
+                aft_loss_distribution="logistic",
+                colsample_bytree=0.63,
+                eval_metric="aft-nloglik",
+                gamma=2.50,
+                learning_rate=0.073,
+                max_depth=3,
+                min_child_weight=5,
+                num_boost_round=627,
+                objective="survival:aft",
+                reg_alpha=0.006,
+                reg_lambda=0.0013,
+                seed=0,
+                subsample=0.55,
+                aft_loss_distribution_scale=0.72,
+            )
         X, y, cut_off = get_model_training_data(DB())
         logger.debug(f"SurrogatePolicy.refit_estimator(X.shape={X.shape})")
         self.estimator_wrapper.fit(X, y, cut_off)
@@ -96,12 +122,11 @@ class TestSurrogatePolicy(SurrogatePolicy):
 class EvaluationSurrogatePolicyA(SurrogatePolicy):
     def __init__(
         self,
-        estimator_wrapper: BaseWrapper,
         first_fit_solver_count: int,
         refit_solver_count: int,
         pct_chance: float,
     ):
-        super().__init__(estimator_wrapper, first_fit_solver_count, refit_solver_count)
+        super().__init__(first_fit_solver_count, refit_solver_count)
         self._rng = np.random.default_rng(SEED)
         self.pct_chance = pct_chance
 
@@ -113,12 +138,11 @@ class EvaluationSurrogatePolicyA(SurrogatePolicy):
 class EvaluationSurrogatePolicyB(SurrogatePolicy):
     def __init__(
         self,
-        estimator_wrapper: BaseWrapper,
         first_fit_solver_count: int,
         refit_solver_count: int,
         reevaluate_pct: float,
     ):
-        super().__init__(estimator_wrapper, first_fit_solver_count, refit_solver_count)
+        super().__init__(first_fit_solver_count, refit_solver_count)
         self.reevaluate_pct = reevaluate_pct
         self._costs = None
         self._records = []
@@ -162,12 +186,11 @@ class EvaluationSurrogatePolicyB(SurrogatePolicy):
 class EvaluationSurrogatePolicyC(SurrogatePolicy):
     def __init__(
         self,
-        estimator_wrapper: BaseWrapper,
         first_fit_solver_count: int,
         refit_solver_count: int,
         reevaluate_factor: float = 1.0,
     ):
-        super().__init__(estimator_wrapper, first_fit_solver_count, refit_solver_count)
+        super().__init__(first_fit_solver_count, refit_solver_count)
         self.reevaluate_factor = reevaluate_factor
         self.cut_off_time_dict = {}
 
@@ -196,12 +219,11 @@ class EvaluationSurrogatePolicyC(SurrogatePolicy):
 class IterationSurrogatePolicyA(SurrogatePolicy):
     def __init__(
         self,
-        estimator_wrapper: BaseWrapper,
         first_fit_solver_count: int,
         refit_solver_count: int,
         iter_diff: int,
     ):
-        super().__init__(estimator_wrapper, first_fit_solver_count, refit_solver_count)
+        super().__init__(first_fit_solver_count, refit_solver_count)
         self.iter_diff = iter_diff
         self.iter_counter = 1
 

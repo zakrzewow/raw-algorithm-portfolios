@@ -1,7 +1,6 @@
 import os
-import pickle
 
-from src.constant import DATA_DIR, MAIN_DIR
+from src.constant import DATA_DIR
 from src.experiment import parhydra
 from src.instance.TSP_Instance import TSP_from_index_file, set_n22_cut_off_time
 from src.surrogate.SurrogatePolicy import (
@@ -12,7 +11,6 @@ from src.surrogate.SurrogatePolicy import (
     IterationSurrogatePolicyA,
     IterationSurrogatePolicyB,
 )
-from src.surrogate.wrapper import SurvivalFunctionWrapper
 
 if __name__ == "__main__":
     train_instances = TSP_from_index_file(
@@ -29,45 +27,33 @@ if __name__ == "__main__":
     )
     train_instances = set_n22_cut_off_time(train_instances, reference_cut_off_time=10.0)
 
-    with open(
-        MAIN_DIR
-        / "archive"
-        / "phase1"
-        / "results"
-        / "permutation"
-        / "HO"
-        / "coxph_incumbent.pkl",
-        "rb",
-    ) as f:
-        coxph_incumbent = pickle.load(f)
     POLICY_KWARGS = {
-        "estimator_wrapper": SurvivalFunctionWrapper(**coxph_incumbent),
-        "first_fit_solver_count": 10,
+        "first_fit_solver_count": 5,
         "refit_solver_count": 5,
     }
 
     POLICY = os.environ.get("POLICY", "").strip()
-    if POLICY == "E_A":
+    if POLICY == "ea":
         surrogate_policy = EvaluationSurrogatePolicyA(
             **POLICY_KWARGS,
             pct_chance=0.5,
         )
-    elif POLICY == "E_B":
+    elif POLICY == "eb":
         surrogate_policy = EvaluationSurrogatePolicyB(
             **POLICY_KWARGS,
             reevaluate_pct=0.5,
         )
-    elif POLICY == "E_C":
+    elif POLICY == "ec":
         surrogate_policy = EvaluationSurrogatePolicyC(
             **POLICY_KWARGS,
             reevaluate_factor=1.0,
         )
-    elif POLICY == "I_A":
+    elif POLICY == "ia":
         surrogate_policy = IterationSurrogatePolicyA(
             **POLICY_KWARGS,
             iter_diff=2,
         )
-    elif POLICY == "I_B":
+    elif POLICY == "ib":
         surrogate_policy = IterationSurrogatePolicyB(**POLICY_KWARGS)
     else:
         surrogate_policy = EmptySurrogatePolicy()

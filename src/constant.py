@@ -19,6 +19,7 @@ SOLVER_DIR = MAIN_DIR / "solver"
 TEMP_DIR = MAIN_DIR / "temp"
 
 # environment
+POLICY = os.environ.get("POLICY", "baseline").strip()
 JOB_NAME = os.environ.get("SLURM_JOB_NAME", "test")
 JOB_ID = os.environ.get("SLURM_JOB_ID", dt.datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))
 MAX_WORKERS = int(os.environ.get("SLURM_CPUS_PER_TASK", 6)) - 1
