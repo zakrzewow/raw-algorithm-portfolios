@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 
 # seed
-SEED = int(os.environ.get("SEED", 0))
+SEED = int(os.environ.get("SEED", "0").strip())
 np.random.seed(SEED)
 random.seed(SEED)
 
@@ -20,6 +20,7 @@ TEMP_DIR = MAIN_DIR / "temp"
 
 # environment
 POLICY = os.environ.get("POLICY", "baseline").strip()
+N_TRAIN = int(os.environ.get("N_TRAIN", "25").strip())
 JOB_NAME = os.environ.get("SLURM_JOB_NAME", "test")
 JOB_ID = os.environ.get("SLURM_JOB_ID", dt.datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))
 MAX_WORKERS = int(os.environ.get("SLURM_CPUS_PER_TASK", 6)) - 1

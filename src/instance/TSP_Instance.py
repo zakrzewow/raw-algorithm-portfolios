@@ -3,7 +3,7 @@ import os
 import subprocess
 import tempfile
 from pathlib import Path
-
+import numpy as np
 import pandas as pd
 
 from src.constant import CONCORDE_PATH, DATA_DIR, IS_WINDOWS, TEMP_DIR
@@ -236,6 +236,7 @@ def TSP_from_index_file(
     cut_off_cost: float = 0.0,
     cut_off_time: float = 0.0,
     n: int = None,
+    seed: int = 0,
 ) -> InstanceList:
     instances = InstanceList()
 
@@ -248,20 +249,35 @@ def TSP_from_index_file(
         instances.append(instance)
 
     if n is not None:
+        rng = np.random.default_rng(seed=seed)
         tsp_generators = set([instance.tsp_generator for instance in instances])
         n_generators = len(tsp_generators)
 
         if n % n_generators != 0:
             raise ValueError(f"{n=} must be divisible by the number of {n_generators=}")
 
-        instances_per_generator = len(instances) // n_generators
+        generators_dict = {}
+        for instance in instances:
+            generator = instance.tsp_generator
+            if generator not in generators_dict:
+                generators_dict[generator] = []
+            generators_dict[generator].append(instance)
+
         samples_per_generator = n // n_generators
 
         new_instances = InstanceList()
-        for i in range(n_generators):
-            start_idx = i * instances_per_generator
-            end_idx = start_idx + samples_per_generator
-            new_instances.extend(instances[start_idx:end_idx])
+        for generator, generator_instances in generators_dict.items():
+            if len(generator_instances) < samples_per_generator:
+                raise ValueError(
+                    f"Not enough instances for generator {generator}. Needed {samples_per_generator}, but only have {len(generator_instances)}"
+                )
+            selected_instances = rng.choice(
+                generator_instances,
+                size=samples_per_generator,
+                replace=False,
+            )
+            new_instances.extend(selected_instances)
+
         instances = new_instances
 
     return instances
