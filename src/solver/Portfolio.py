@@ -164,8 +164,20 @@ class Portfolio(list):
                     futures.append((instance, solver, future))
 
         for instance, solver, future in futures:
-            solver_result = future.result()
-            result.update(solver_result)
+            try:
+                solver_result = future.result()
+                result.update(solver_result)
+            except concurrent.futures.process.BrokenProcessPool:
+                logger.error(f"BrokenProcessPool: {solver} for {instance}")
+                executor.shutdown(wait=False, cancel_futures=True)
+                executor = concurrent.futures.ProcessPoolExecutor(max_workers=MAX_WORKERS)
+                future = Solver.Result.error_instance(
+                    prefix + ";error",
+                    solver,
+                    instance,
+                ).as_future()
+                solver_result = future.result()
+                result.update(solver_result)
 
         executor.shutdown(wait=False, cancel_futures=True)
         result.log()
