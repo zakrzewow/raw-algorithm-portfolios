@@ -154,13 +154,28 @@ class Portfolio(list):
                 should_reevaluate = surrogate_policy.should_reevaluate(solver, instance)
 
                 if not results_has_cost or should_reevaluate:
-                    future = solver.solve(
-                        instance,
-                        prefix,
-                        calculate_features=calculate_features,
-                        cache=cache,
-                        executor=executor,
-                    )
+                    try:
+                        future = solver.solve(
+                            instance,
+                            prefix,
+                            calculate_features=calculate_features,
+                            cache=cache,
+                            executor=executor,
+                        )
+                    except concurrent.futures.process.BrokenProcessPool:
+                        logger.error("Broken process pool, retrying...")
+                        executor.shutdown(wait=False, cancel_futures=True)
+                        executor = concurrent.futures.ProcessPoolExecutor(
+                            max_workers=MAX_WORKERS
+                        )
+                        future = solver.solve(
+                            instance,
+                            prefix,
+                            calculate_features=False,
+                            cache=cache,
+                            executor=executor,
+                        )
+
                     futures.append((instance, solver, future))
 
         for instance, solver, future in futures:
