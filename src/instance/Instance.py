@@ -65,7 +65,8 @@ class Instance(ABC):
                 result_with_time = future.result(300)
                 self.features = result_with_time.result
                 return result_with_time
-            except concurrent.futures.TimeoutError:
+            except Exception as e:
+                logger.error(f"Error calculating features: {e}")
                 self.features = {}
                 return ResultWithTime(None, 0.0)
 
