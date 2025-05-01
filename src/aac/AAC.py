@@ -16,6 +16,8 @@ from src.surrogate.SurrogatePolicy import EmptySurrogatePolicy, SurrogatePolicy
 
 
 class AAC:
+    _RNG = np.random.default_rng(SEED)
+
     def __init__(
         self,
         portfolio: Portfolio,
@@ -56,7 +58,7 @@ class AAC:
             deterministic=True,
             n_trials=10000,
             use_default_config=False,
-            seed=SEED,
+            seed=self._RNG.integers(0, 2**32 - 1),
         )
         intensifier = AlgorithmConfigurationFacade.get_intensifier(
             scenario,

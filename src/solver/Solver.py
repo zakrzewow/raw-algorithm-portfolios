@@ -182,7 +182,7 @@ class Solver(ABC):
             X = np.concatenate([solver.get_array(), instance.get_array()])
             X = X.reshape(1, -1)
             cut_off = np.array([instance.cut_off_cost])
-            cost = estimator_wrapper.predict(X, cut_off)[0]
+            cost = float(estimator_wrapper.predict(X, cut_off)[0])
             result = cls(
                 prefix=prefix,
                 solver=solver,
