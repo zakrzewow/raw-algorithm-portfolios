@@ -213,7 +213,7 @@ class EvaluationSurrogatePolicyC(SurrogatePolicy):
     def digest_results(self, solver_result: "Solver.Result"):
         if solver_result.surrogate:
             id_ = solver_result.evaluation_id()
-            self.cut_off_time_dict[id_] = round(solver_result.cost, 2)
+            self.cut_off_time_dict[id_] = min(round(solver_result.cost, 2), 100.0)
 
 
 class IterationSurrogatePolicyA(SurrogatePolicy):
