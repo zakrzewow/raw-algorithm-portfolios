@@ -242,7 +242,7 @@ class Solver(ABC):
         # instance features
         if calculate_features and not instance.features_calculated:
             logger.debug(f"calculate_features(instance={instance})")
-            result_with_time = instance.calculate_features(executor=executor)
+            result_with_time = instance.calculate_features(executor=None)
             features_time += result_with_time.time
 
         # saving to database

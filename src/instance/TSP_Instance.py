@@ -3,6 +3,7 @@ import os
 import subprocess
 import tempfile
 from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
@@ -12,6 +13,21 @@ from src.instance.Instance import Instance
 from src.instance.InstanceList import InstanceList
 from src.log import logger
 from src.utils import ResultWithTime, Timer
+
+# from tqdm.auto import tqdm
+# train_instances = TSP_from_index_file(filepath=DATA_DIR / "TSP" / "TRAIN" / "index.json")
+# features = {}
+# for instance in tqdm(train_instances):
+#     try:
+#         result, time = instance.calculate_features()
+#     except Exception as e:
+#         print(f"Error calculating features for {instance}: {e}")
+#         result = {}
+#         time = 0.0
+#     features[instance.id()] = {"result": result, "time": time}
+
+with open(DATA_DIR / "TSP" / "TRAIN" / "features.json", "r") as f:
+    FEATURES = json.load(f)
 
 
 class TSP_Instance(Instance):
@@ -134,10 +150,14 @@ class TSP_Instance(Instance):
 
     @classmethod
     def _calculate_features(cls, instance: "Instance") -> ResultWithTime:
-        with Timer() as timer:
-            tspmeta_features = instance._calculate_tspmeta_features()
-            features = {**instance.FEATURES, **tspmeta_features}
-        return ResultWithTime(features, timer.elapsed_time)
+        # with Timer() as timer:
+        #     tspmeta_features = instance._calculate_tspmeta_features()
+        #     features = {**instance.FEATURES, **tspmeta_features}
+        # return ResultWithTime(features, timer.elapsed_time)
+        dict_ = FEATURES.get(instance.id(), {})
+        result = dict_.get("result", {})
+        time = dict_.get("time", 0.0)
+        return ResultWithTime(result, time)
 
     def _calculate_tspmeta_features(self) -> dict:
         try:
