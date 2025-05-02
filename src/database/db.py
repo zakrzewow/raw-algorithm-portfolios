@@ -3,9 +3,9 @@ from enum import Enum
 
 import pandas as pd
 
-from src.constant import DATABASE_DIR, JOB_ID, JOB_NAME, POLICY, N_TRAIN
+from src.constant import DATABASE_DIR, JOB_ID, JOB_NAME, N_TRAIN, PARG, POLICY
 
-DB_PATH = DATABASE_DIR / f"{JOB_NAME}-{POLICY}-{N_TRAIN}-{JOB_ID}.db"
+DB_PATH = DATABASE_DIR / f"{JOB_NAME}-{POLICY}-{PARG}-{N_TRAIN}-{JOB_ID}.db"
 
 
 class DB:

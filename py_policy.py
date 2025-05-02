@@ -1,8 +1,9 @@
 import os
 
-from src.constant import DATA_DIR, N_TRAIN, SEED
+from src.constant import DATA_DIR, N_TRAIN, PARG, POLICY, SEED
 from src.experiment import parhydra
 from src.instance.TSP_Instance import TSP_from_index_file, set_n22_cut_off_time
+from src.log import logger
 from src.surrogate.SurrogatePolicy import (
     EmptySurrogatePolicy,
     EvaluationSurrogatePolicyA,
@@ -13,6 +14,7 @@ from src.surrogate.SurrogatePolicy import (
 )
 
 if __name__ == "__main__":
+    logger.info(f"{POLICY=}, {PARG=}, {N_TRAIN=}, {SEED=}")
     train_instances = TSP_from_index_file(
         filepath=DATA_DIR / "TSP" / "TRAIN" / "index.json",
         cut_off_cost=100,
@@ -36,25 +38,13 @@ if __name__ == "__main__":
 
     POLICY = os.environ.get("POLICY", "").strip()
     if POLICY == "ea":
-        surrogate_policy = EvaluationSurrogatePolicyA(
-            **POLICY_KWARGS,
-            pct_chance=0.5,
-        )
+        surrogate_policy = EvaluationSurrogatePolicyA(**POLICY_KWARGS)
     elif POLICY == "eb":
-        surrogate_policy = EvaluationSurrogatePolicyB(
-            **POLICY_KWARGS,
-            reevaluate_pct=0.5,
-        )
+        surrogate_policy = EvaluationSurrogatePolicyB(**POLICY_KWARGS)
     elif POLICY == "ec":
-        surrogate_policy = EvaluationSurrogatePolicyC(
-            **POLICY_KWARGS,
-            reevaluate_factor=1.0,
-        )
+        surrogate_policy = EvaluationSurrogatePolicyC(**POLICY_KWARGS)
     elif POLICY == "ia":
-        surrogate_policy = IterationSurrogatePolicyA(
-            **POLICY_KWARGS,
-            iter_diff=2,
-        )
+        surrogate_policy = IterationSurrogatePolicyA(**POLICY_KWARGS)
     elif POLICY == "ib":
         surrogate_policy = IterationSurrogatePolicyB(**POLICY_KWARGS)
     else:

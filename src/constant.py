@@ -20,6 +20,7 @@ TEMP_DIR = MAIN_DIR / "temp"
 
 # environment
 POLICY = os.environ.get("POLICY", "baseline").strip()
+PARG = os.environ.get("PARG", "").strip()
 N_TRAIN = int(os.environ.get("N_TRAIN", "25").strip())
 JOB_NAME = os.environ.get("SLURM_JOB_NAME", "test")
 JOB_ID = os.environ.get("SLURM_JOB_ID", dt.datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))

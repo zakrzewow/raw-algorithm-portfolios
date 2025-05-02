@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from src.constant import SEED
+from src.constant import PARG, SEED
 from src.database.db import DB
 from src.database.queries import get_model_training_data, get_solvers_count
 from src.log import logger
@@ -124,10 +124,12 @@ class EvaluationSurrogatePolicyA(SurrogatePolicy):
         self,
         first_fit_solver_count: int,
         refit_solver_count: int,
-        pct_chance: float,
+        pct_chance: float = None,
     ):
         super().__init__(first_fit_solver_count, refit_solver_count)
         self._rng = np.random.default_rng(SEED)
+        if pct_chance is None:
+            pct_chance = float(PARG) / 100.0
         self.pct_chance = pct_chance
 
     def should_estimate(self, solver: "Solver", instance: "Instance"):
@@ -140,9 +142,11 @@ class EvaluationSurrogatePolicyB(SurrogatePolicy):
         self,
         first_fit_solver_count: int,
         refit_solver_count: int,
-        reevaluate_pct: float,
+        reevaluate_pct: float = None,
     ):
         super().__init__(first_fit_solver_count, refit_solver_count)
+        if reevaluate_pct is None:
+            reevaluate_pct = float(PARG) / 100.0
         self.reevaluate_pct = reevaluate_pct
         self._costs = None
         self._records = []
@@ -188,9 +192,11 @@ class EvaluationSurrogatePolicyC(SurrogatePolicy):
         self,
         first_fit_solver_count: int,
         refit_solver_count: int,
-        reevaluate_factor: float = 1.0,
+        reevaluate_factor: float = None,
     ):
         super().__init__(first_fit_solver_count, refit_solver_count)
+        if reevaluate_factor is None:
+            reevaluate_factor = float(PARG) / 100.0
         self.reevaluate_factor = reevaluate_factor
         self.cut_off_time_dict = {}
 
@@ -213,7 +219,7 @@ class EvaluationSurrogatePolicyC(SurrogatePolicy):
     def digest_results(self, solver_result: "Solver.Result"):
         if solver_result.surrogate:
             id_ = solver_result.evaluation_id()
-            self.cut_off_time_dict[id_] = min(round(solver_result.cost, 2), 100.0)
+            self.cut_off_time_dict[id_] = min(round(solver_result.cost, 2), 20.0)
 
 
 class IterationSurrogatePolicyA(SurrogatePolicy):
@@ -221,24 +227,35 @@ class IterationSurrogatePolicyA(SurrogatePolicy):
         self,
         first_fit_solver_count: int,
         refit_solver_count: int,
-        iter_diff: int,
+        surrogate_iter: int = None,
+        real_iter: int = None,
     ):
         super().__init__(first_fit_solver_count, refit_solver_count)
-        self.iter_diff = iter_diff
-        self.iter_counter = 1
+        if surrogate_iter is None or real_iter is None:
+            surrogate_iter, real_iter = PARG.split("+")
+            surrogate_iter = int(surrogate_iter)
+            real_iter = int(real_iter)
+        self.surrogate_iter = surrogate_iter
+        self.real_iter = real_iter
+        self.surrogate_mode = True
+        self.iter_counter = 0
 
     def should_estimate(self, solver: "Solver", instance: "Instance"):
-        return self.is_fitted and self.iter_counter != self.iter_diff
+        return self.is_fitted and self.surrogate_mode
 
     def should_reevaluate(self, solver: "Solver", instance: "Instance"):
-        return self.iter_counter == self.iter_diff
+        return False
 
     def notify_iter(self, iter: int):
         super().notify_iter(iter)
         if self.is_fitted:
             self.iter_counter += 1
-            if self.iter_counter > self.iter_diff:
+            if self.surrogate_mode and self.iter_counter > self.surrogate_iter:
                 self.iter_counter = 1
+                self.surrogate_mode = False
+            elif not self.surrogate_mode and self.iter_counter > self.real_iter:
+                self.iter_counter = 1
+                self.surrogate_mode = True
 
 
 class IterationSurrogatePolicyB(SurrogatePolicy):
