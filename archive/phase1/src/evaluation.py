@@ -1,3 +1,4 @@
+import time
 from typing import List, Tuple
 
 import numpy as np
@@ -16,7 +17,7 @@ def evaluate_model_with_cross_validation(
     permuation_lognormal_mean_sigma: Tuple[float, float] = None,
     random_state: int = 0,
 ):
-    result = {"rmse_values": []}
+    result = {"rmse_list": [], "fit_time_list": [], "predict_time_list": []}
     all_y_test = []
     all_y_test_not_censored = []
     all_y_pred = []
@@ -63,8 +64,16 @@ def evaluate_model_with_cross_validation(
         y_test = np.clip(y_test, 0, cut_off_test)
 
         try:
+            start_process_time = time.process_time()
             wrapper.fit(X_train, y_train, cut_off_train)
+            end_process_time = time.process_time()
+            result["fit_time_list"].append(end_process_time - start_process_time)
+
+            start_process_time = time.process_time()
             y_pred = wrapper.predict(X_test, cut_off_test)
+            end_process_time = time.process_time()
+            result["predict_time_list"].append(end_process_time - start_process_time)
+
             y_pred = np.clip(y_pred, 0, 300.0)
 
             all_y_test.append(y_test)
@@ -76,12 +85,14 @@ def evaluate_model_with_cross_validation(
                     np.log(y_test_not_censored + 0.01), np.log(y_pred + 0.01)
                 )
             )
-            result["rmse_values"].append(rmse)
+            result["rmse_list"].append(rmse)
         except Exception as e:
             print(f"Error during model fitting/prediction: {e}")
             continue
 
-    result["rmse"] = np.mean(result["rmse_values"])
+    result["rmse"] = np.mean(result["rmse_list"])
+    result["fit_time"] = np.mean(result["fit_time_list"])
+    result["predict_time"] = np.mean(result["predict_time_list"])
     result["y_test"] = np.concatenate(all_y_test)
     result["y_test_not_censored"] = np.concatenate(all_y_test_not_censored)
     result["y_pred"] = np.concatenate(all_y_pred)
