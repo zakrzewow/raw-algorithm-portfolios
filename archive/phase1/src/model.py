@@ -222,6 +222,11 @@ class SchmeeHahnQRF:
         ccp_alpha=0.001,
         random_state=0,
         n_jobs=-1,
+        max_depth_rf=32,
+        min_samples_split_rf=2,
+        min_samples_leaf_rf=1,
+        max_features_rf=1.0,
+        ccp_alpha_rf=0.001,
     ):
         self.k = k
         self.params = {
@@ -230,6 +235,15 @@ class SchmeeHahnQRF:
             "min_samples_leaf": min_samples_leaf,
             "max_features": max_features,
             "ccp_alpha": ccp_alpha,
+            "random_state": random_state,
+            "n_jobs": n_jobs,
+        }
+        self.params_rf = {
+            "max_depth": max_depth_rf,
+            "min_samples_split": min_samples_split_rf,
+            "min_samples_leaf": min_samples_leaf_rf,
+            "max_features": max_features_rf,
+            "ccp_alpha": ccp_alpha_rf,
             "random_state": random_state,
             "n_jobs": n_jobs,
         }
@@ -253,7 +267,11 @@ class SchmeeHahnQRF:
 
             self.qrf = RandomForestQuantileRegressor(**self.params)
             self.qrf.fit(X, y_imputed)
+
+        self.rf = RandomForestRegressor(**self.params_rf)
+        self.rf.fit(X, y_imputed)
         return self
 
     def predict(self, X, cut_off):
-        return self.qrf.predict(X, quantiles=0.5)
+        # return self.qrf.predict(X, quantiles=0.5)
+        return self.rf.predict(X)

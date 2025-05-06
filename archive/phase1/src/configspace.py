@@ -267,5 +267,10 @@ SCHMEE_HAHN_QRF_CONFIGSPACE = ConfigurationSpace(
         Float(name="ccp_alpha", bounds=(1e-3, 10.0), default=1e-3, log=True),
         Constant(name="random_state", value=RANDOM_STATE),
         Constant(name="n_jobs", value=-1),
+        Integer(name="max_depth_rf", bounds=(2, 32), default=32),
+        Integer(name="min_samples_split_rf", bounds=(2, 32), default=2),
+        Integer(name="min_samples_leaf_rf", bounds=(1, 32), default=1),
+        Float(name="max_features_rf", bounds=(0, 1.0), default=1.0),
+        Float(name="ccp_alpha_rf", bounds=(1e-3, 10.0), default=1e-3, log=True),
     ],
 )
