@@ -1,4 +1,6 @@
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 
 plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams["axes.grid"] = True
@@ -68,3 +70,63 @@ def plot_line(result_df):
     plt.title("RMSE vs Number of Solvers")
     plt.ylim(0)
     return fig, ax
+
+
+def wilcoxon_df(
+    result_df,
+    model_info_list=None,
+):
+    from scipy.stats import wilcoxon
+
+    result_agg = (
+        result_df.groupby(["solver_number", "name"], sort=False)["rmse"]
+        .mean()
+        .reset_index()
+    )
+
+    frames = []
+    for solver_number, group in result_agg.groupby("solver_number"):
+        group = group.copy()
+        best_rmse_i = group["rmse"].argmin()
+        best_rsme_model = group.iloc[best_rmse_i]["name"]
+        group["p"] = np.nan
+
+        result_solver_number = result_df.loc[
+            lambda x: x["solver_number"] == solver_number
+        ].pivot_table(index="random_state", columns="name", values="rmse")
+        y = result_solver_number[best_rsme_model].to_numpy()
+
+        for i, row in group.iterrows():
+            if row["name"] == best_rsme_model:
+                continue
+
+            x = result_solver_number[row["name"]].to_numpy()
+            stat, p = wilcoxon(
+                x,
+                y,
+                zero_method="wilcox",
+                alternative="greater",
+                correction=True,
+                method="auto",
+            )
+            group.at[i, "p"] = p
+        frames.append(group)
+
+    result_agg = pd.concat(frames)
+    p_values = result_agg.pivot_table(index="name", columns="solver_number", values="p")
+    result_agg = result_agg.pivot_table(
+        index="name", columns="solver_number", values="rmse"
+    )
+
+    if model_info_list is not None:
+        idx = [x["name"] for x in model_info_list]
+        p_values = p_values.loc[idx]
+        result_agg = result_agg.loc[idx]
+
+    mask = p_values.isna() | (p_values > 0.05 / (p_values.shape[0] - 1))
+
+    def highlight_mask(x):
+        return ['font-weight: bold' if mask.loc[x.name, col] else '' for col in x.index]
+
+    styled_result = result_agg.style.apply(highlight_mask, axis=1).format(precision=3).highlight_min(axis=0)
+    return styled_result

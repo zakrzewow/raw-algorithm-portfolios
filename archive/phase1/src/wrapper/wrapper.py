@@ -10,9 +10,10 @@ class BaseWrapper(ABC):
         model_cls,
         **kwargs,
     ):
-        valid_params = inspect.signature(model_cls.__init__).parameters.keys()
-        valid_params = [param for param in valid_params if param != "self"]
-        self.model_kwargs = {k: v for k, v in kwargs.items() if k in valid_params}
+        # valid_params = inspect.signature(model_cls.__init__).parameters.keys()
+        # valid_params = [param for param in valid_params if param != "self"]
+        # self.model_kwargs = {k: v for k, v in kwargs.items() if k in valid_params}
+        self.model_kwargs = kwargs
         self.model_cls = model_cls
         self.model = None
 
