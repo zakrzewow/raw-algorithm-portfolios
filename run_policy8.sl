@@ -7,7 +7,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=11
 #SBATCH --mem-per-cpu=2G
-#SBATCH --time=10:00:00
+#SBATCH --time=08:00:00
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=01161643@pw.edu.pl
 #SBATCH --output=/home2/faculty/gzakrzewski/raw-algorithm-portfolios/log/%x-%j.log
