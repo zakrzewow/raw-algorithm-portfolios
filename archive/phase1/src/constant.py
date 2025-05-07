@@ -2,8 +2,8 @@ from pathlib import Path
 from types import SimpleNamespace
 
 HO = SimpleNamespace(
-    # N_TRIALS=5,
-    N_TRIALS=500,
+    N_TRIALS=3,
+    # N_TRIALS=500,
     N=3,
     INSTANCE_NUMBER=10,
     SOLVER_NUMBER=90,
@@ -21,3 +21,4 @@ RESULTS_DIR = MAIN_DIR / "results"
 RESULTS_BASE_DIR = RESULTS_DIR / "base"
 RESULTS_CONST_CUT_OFF_DIR = RESULTS_DIR / "const_cut_off"
 RESULTS_PERMUTATION_DIR = RESULTS_DIR / "permutation"
+RESULTS_0_10_DIR = RESULTS_DIR / "0_10"

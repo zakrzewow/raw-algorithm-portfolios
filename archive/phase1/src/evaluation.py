@@ -15,6 +15,7 @@ def evaluate_model_with_cross_validation(
     splits: List[Tuple[np.ndarray, np.ndarray]],
     const_cut_off: float = None,
     permuation_lognormal_mean_sigma: Tuple[float, float] = None,
+    instance_to_cut_off: dict = None,
     random_state: int = 0,
 ):
     result = {"rmse_list": [], "fit_time_list": [], "predict_time_list": []}
@@ -43,6 +44,9 @@ def evaluate_model_with_cross_validation(
             cut_off_train = cut_off_train_test[is_train]
             df_test = df_train_test.loc[is_test]
             cut_off_test = cut_off_train_test[is_test]
+        elif instance_to_cut_off is not None:
+            cut_off_train = df_train["instance_id"].map(instance_to_cut_off).to_numpy()
+            cut_off_test = df_test["instance_id"].map(instance_to_cut_off).to_numpy()
 
         X_train = df_train.drop(columns=not_train_cols)
         y_train = df_train["cost"].to_numpy()
@@ -51,7 +55,7 @@ def evaluate_model_with_cross_validation(
         y_test = df_test["cost"].to_numpy()
         y_test_not_censored = y_test.copy()
 
-        if permuation_lognormal_mean_sigma is not None:
+        if permuation_lognormal_mean_sigma is not None or instance_to_cut_off is not None:
             pass
         elif const_cut_off is not None:
             cut_off_train = np.full(X_train.shape[0], const_cut_off)

@@ -30,6 +30,7 @@ def optimize_hyperparameters(
     splits: List[Tuple[np.ndarray, np.ndarray]],
     const_cut_off: float = None,
     permuation_lognormal_mean_sigma: Tuple[float, float] = None,
+    instance_to_cut_off: dict = None,
     n_trials=30,
     random_state=0,
     filepath: Path = None,
@@ -46,6 +47,7 @@ def optimize_hyperparameters(
             splits=splits,
             const_cut_off=const_cut_off,
             permuation_lognormal_mean_sigma=permuation_lognormal_mean_sigma,
+            instance_to_cut_off=instance_to_cut_off,
             random_state=random_state,
         )
         return result["rmse"]
