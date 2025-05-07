@@ -51,7 +51,11 @@ def optimize_hyperparameters(
         return result["rmse"]
 
     scenario = Scenario(
-        configspace, deterministic=True, n_trials=n_trials, seed=random_state
+        configspace,
+        deterministic=True,
+        n_trials=n_trials,
+        seed=random_state,
+        use_default_config=True,
     )
     smac = HyperparameterOptimizationFacade(scenario, train, overwrite=True)
     incumbent = smac.optimize()

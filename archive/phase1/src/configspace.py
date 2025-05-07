@@ -254,6 +254,21 @@ XGB_AFT_CONFIGSPACE.add(
 )
 
 ###################################################################################
+# TOBIT NN
+###################################################################################
+TOBIT_NN_CONFIGSPACE = ConfigurationSpace(
+    seed=0,
+    space=[
+        Float(name="base_lr", bounds=(1e-4, 1e-2), default=1e-3, log=True),
+        Integer(name="scheduler_step_size_up", bounds=(10, 1000), default=100),
+        Float(name="momentum", bounds=(0.1, 0.99), default=0.99),
+        Integer(name="n_epochs", bounds=(10, 500), default=250),
+        Float(name="dropout", bounds=(0.0, 1.0), default=0.5),
+    ],
+)
+
+
+###################################################################################
 # SCHMEE & HAHN QUANTILE RANDOM FOREST
 ###################################################################################
 SCHMEE_HAHN_QRF_CONFIGSPACE = ConfigurationSpace(

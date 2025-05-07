@@ -19,7 +19,6 @@ from sksurv.linear_model import CoxPHSurvivalAnalysis
 from torch.optim import SGD
 from torch.optim.lr_scheduler import CyclicLR
 from torch.utils.data import DataLoader, TensorDataset
-from tqdm.auto import tqdm
 from xgboost import XGBRegressor
 
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -128,7 +127,7 @@ class XGBRegressorAFT:
 
 
 class TobitNet(nn.Module):
-    def __init__(self, input_dim, init_bias_std):
+    def __init__(self, input_dim, init_bias_std, dropout=0.5):
         super().__init__()
         self.fc1 = nn.Linear(input_dim, 50)
         self.fc2 = nn.Linear(50, 50)
@@ -136,11 +135,15 @@ class TobitNet(nn.Module):
         self.mu = nn.Linear(50, 1)
         self.log_sigma = nn.Linear(50, 1)
         self.log_sigma.bias.data.fill_(init_bias_std.log())
+        self.dropout = nn.Dropout(dropout)
 
     def forward(self, x):
         x = torch.tanh(self.fc1(x))
+        x = self.dropout(x)
         x = torch.tanh(self.fc2(x))
+        x = self.dropout(x)
         x = torch.tanh(self.fc3(x))
+        x = self.dropout(x)
         mu = self.mu(x).squeeze(-1)
         sigma = F.softplus(self.log_sigma(x)).squeeze(-1)
         return mu, sigma
@@ -156,7 +159,19 @@ def tobit_loss(mu, sigma, y, is_censored):
 
 
 class TobitModel:
-    def __init__(self):
+    def __init__(
+            self, 
+            base_lr: float = 1e-3,
+            scheduler_step_size_up: int = 100,
+            momentum: float = 0.99,
+            n_epochs: int = 250,
+            dropout: float = 0.5,
+        ):
+        self.base_lr = base_lr
+        self.scheduler_step_size_up = scheduler_step_size_up
+        self.momentum = momentum
+        self.n_epochs = n_epochs
+        self.dropout = dropout
         self.model = None
 
     def fit(self, X, y, cut_off):
@@ -170,20 +185,20 @@ class TobitModel:
         loader = DataLoader(dataset, batch_size=16, shuffle=True)
 
         init_std = y.std()
-        self.model = TobitNet(input_dim=X.shape[1], init_bias_std=init_std)
+        self.model = TobitNet(input_dim=X.shape[1], init_bias_std=init_std, dropout=self.dropout)
         optimizer = SGD(
-            self.model.parameters(), lr=1e-4, momentum=0.9, weight_decay=1e-4
+            self.model.parameters(), lr=self.base_lr, momentum=self.momentum, weight_decay=1e-4
         )
         scheduler = CyclicLR(
             optimizer,
-            base_lr=1e-4,
+            base_lr=self.base_lr,
             max_lr=1e-2,
-            step_size_up=100,
+            step_size_up=self.scheduler_step_size_up,
             mode="triangular",
         )
 
         self.model.train()
-        for epoch in tqdm(range(250)):
+        for epoch in range(self.n_epochs):
             for X_batch, y_batch, censored_batch in loader:
                 mu_pred, sigma_pred = self.model(X_batch)
                 loss = tobit_loss(mu_pred, sigma_pred, y_batch, censored_batch.float())
@@ -197,6 +212,7 @@ class TobitModel:
 
     def predict(self, X, cut_off):
         X = torch.tensor(X, dtype=torch.float32)
+        self.model.eval()
         y_pred, _ = self.model(X)
         y_pred = y_pred.detach().numpy()
         return y_pred
