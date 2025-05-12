@@ -2,8 +2,8 @@ from pathlib import Path
 from types import SimpleNamespace
 
 HO = SimpleNamespace(
-    N_TRIALS=3,
-    # N_TRIALS=500,
+    # N_TRIALS=3,
+    N_TRIALS=500,
     N=3,
     INSTANCE_NUMBER=10,
     SOLVER_NUMBER=90,
