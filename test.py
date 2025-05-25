@@ -6,7 +6,7 @@ solver = SAT_Riss_Solver()
 instances = SAT_from_index_file(
     filepath=DATA_DIR / "SAT" / "index.json",
     max_cost=10.0,
-    max_time=10.0,
+    max_time=1.0,
 )
 
 for instance in instances:
