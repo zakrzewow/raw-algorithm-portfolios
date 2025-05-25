@@ -29,7 +29,7 @@ class SAT_Riss_Solver(Solver):
                 capture_output=True,
                 text=True,
                 stdin=subprocess.DEVNULL,
-                timeout=instance.max_time + 0.5,
+                timeout=instance.max_time + 5,
             )
             time = solver._parse_result(result, instance)
             cost = time if time < instance.max_time else instance.max_cost
@@ -54,7 +54,6 @@ class SAT_Riss_Solver(Solver):
     ) -> float:
         time = None
         for line in result.stdout.splitlines():
-            print(line)
             if "c CPU time" in line and line.strip().endswith("s"):
                 time_str = line.split(":")[-1].strip().replace("s", "").strip()
                 time = float(time_str)
