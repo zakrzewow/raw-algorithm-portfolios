@@ -10,4 +10,4 @@ instances = SAT_from_index_file(
 )
 
 for instance in instances:
-    solver.solve(instance, prefix="test")
+    solver.solve(instance, prefix="test", cache=False)
