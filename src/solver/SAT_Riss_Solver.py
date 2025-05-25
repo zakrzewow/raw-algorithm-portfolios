@@ -31,6 +31,8 @@ class SAT_Riss_Solver(Solver):
                 stdin=subprocess.DEVNULL,
                 timeout=instance.max_time + 5,
             )
+            for line in result.stdout.splitlines():
+                print(line)
             time = 69.69
             cost = 69.69
             # time = solver._parse_result(result, instance)
