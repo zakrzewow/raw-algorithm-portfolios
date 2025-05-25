@@ -31,12 +31,8 @@ class SAT_Riss_Solver(Solver):
                 stdin=subprocess.DEVNULL,
                 timeout=instance.max_time + 5,
             )
-            for line in result.stdout.splitlines():
-                print(line)
-            time = 69.69
-            cost = 69.69
-            # time = solver._parse_result(result, instance)
-            # cost = time if time < instance.max_time else instance.max_cost
+            time = solver._parse_result(result, instance)
+            cost = time if time < instance.max_time else instance.max_cost
             error = False
         except subprocess.TimeoutExpired:
             time = instance.max_time
@@ -50,3 +46,19 @@ class SAT_Riss_Solver(Solver):
         for k, v in self.config.items():
             params.append(f"-{k}={v:.2f}")
         return params
+
+    def _parse_result(
+        self,
+        result: subprocess.CompletedProcess,
+        instance: SAT_Instance,
+    ) -> float:
+        time = None
+        for line in result.stdout.splitlines():
+            print(line)
+            if "c CPU time" in line and line.strip().endswith("s"):
+                time_str = line.split(":")[-1].strip().replace("s", "").strip()
+                time = float(time_str)
+                break
+        if time is None:
+            raise Exception("CPU time not found")
+        return min(time, instance.cut_off_time)
