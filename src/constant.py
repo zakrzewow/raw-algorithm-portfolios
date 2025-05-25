@@ -17,8 +17,6 @@ DATABASE_DIR = MAIN_DIR / "database"
 LOG_DIR = MAIN_DIR / "log"
 SOLVER_DIR = MAIN_DIR / "solver"
 TEMP_DIR = MAIN_DIR / "temp"
-TEST_DIR = DATA_DIR / "TSP" / os.environ.get("TEST_DIR", "TEST_600").strip()
-TRAIN_DIR = DATA_DIR / "TSP" / os.environ.get("TRAIN_DIR", "TRAIN_400").strip()
 
 # environment
 JOB_NAME = os.environ.get("SLURM_JOB_NAME", "test")
@@ -26,13 +24,5 @@ JOB_ID = os.environ.get("SLURM_JOB_ID", dt.datetime.now().strftime("%Y_%m_%d_%H_
 MAX_WORKERS = int(os.environ.get("SLURM_CPUS_PER_TASK", 6)) - 1
 R_HOME = Path.home() / "miniconda3" / "envs" / "SMAC" / "lib" / "R"
 
-# TSP
-LKH_PATH = SOLVER_DIR / "LKH"
-CONCORDE_PATH = SOLVER_DIR / "concorde"
-UBC_TSP_FEATURE_PATH = SOLVER_DIR / "TSP-feature"
-
-IS_WINDOWS = os.name == "nt"
-# if IS_WINDOWS:
-# R_HOME = home / "AppData" / "Local" / "miniconda3" / "envs" / "SMAC" / "Lib" / "R"
-
-os.environ["R_HOME"] = str(R_HOME)
+# SAT
+RISS_PATH = "/home2/faculty/gzakrzewski/riss-solver/build/bin/riss"

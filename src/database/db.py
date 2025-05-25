@@ -25,6 +25,7 @@ class DB:
         self._conn.close()
 
     def insert(self, table: "DB.SCHEMA", id_: str = None, data: dict = {}):
+        data = {k.replace("-", "_"): v for k, v in data.items()}
         if not self._table_exists(table):
             self._create_table_from_data(table, id_, data)
         if self._row_exists(table, id_):

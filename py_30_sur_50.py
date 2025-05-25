@@ -4,9 +4,9 @@ from src.constant import TEST_DIR, TRAIN_DIR
 from src.database import DB
 from src.database.queries import get_model_training_data
 from src.instance.InstanceList import InstanceList
-from src.instance.TSP_Instance import TSP_from_index_file
+from src.instance.SAT_Instance import TSP_from_index_file
 from src.solver.Portfolio import Portfolio
-from src.solver.TSP_LKH_Solver import TSP_LKH_Solver
+from src.solver.SAT_Riss_Solver import SAT_Riss_Solver
 
 if __name__ == "__main__":
     N = 30
@@ -20,7 +20,7 @@ if __name__ == "__main__":
     for i in range(5):
         train_instances.extend(instances[i * 200 : i * 200 + number_of_instances])
 
-    portfolio = Portfolio.from_solver_class(TSP_LKH_Solver, size=2)
+    portfolio = Portfolio.from_solver_class(SAT_Riss_Solver, size=2)
 
     aac = AAC(
         portfolio=portfolio,
@@ -39,7 +39,7 @@ if __name__ == "__main__":
         if aac.iter >= 37 and aac.iter - last_model_iter >= 5:
             X, y = get_model_training_data(db)
             estimator = Estimator1(
-                max_cost=TSP_LKH_Solver.MAX_COST, estimator_pct=ESTIMATOR_PCT
+                max_cost=SAT_Riss_Solver.MAX_COST, estimator_pct=ESTIMATOR_PCT
             )
             estimator.fit(X, y)
             estimator.log()

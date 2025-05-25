@@ -2,7 +2,7 @@ import json
 from concurrent.futures import ProcessPoolExecutor
 
 from src.constant import DATA_DIR
-from src.instance.TSP_Instance import TSP_from_index_file
+from src.instance.SAT_Instance import TSP_from_index_file
 
 
 def calculate_optimum(instance):
