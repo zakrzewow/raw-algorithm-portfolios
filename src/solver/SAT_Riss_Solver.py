@@ -61,4 +61,4 @@ class SAT_Riss_Solver(Solver):
                 break
         if time is None:
             raise Exception("CPU time not found")
-        return min(time, instance.cut_off_time)
+        return min(time, instance.max_time)
