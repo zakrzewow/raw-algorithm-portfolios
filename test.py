@@ -1,3 +1,5 @@
+print("xddd")
+
 from src.constant import DATA_DIR
 from src.instance.SAT_Instance import SAT_from_index_file
 from src.solver.SAT_Riss_Solver import SAT_Riss_Solver
