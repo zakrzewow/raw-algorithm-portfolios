@@ -1,24 +1,26 @@
 from src.aac.AAC import AAC
 from src.aac.SurrogateEstimator import Estimator1
-from src.constant import TEST_DIR, TRAIN_DIR
+from src.constant import DATA_DIR
 from src.database import DB
 from src.database.queries import get_model_training_data
-from src.instance.InstanceList import InstanceList
-from src.instance.SAT_Instance import TSP_from_index_file
+from src.instance.SAT_Instance import SAT_from_index_file
 from src.solver.Portfolio import Portfolio
 from src.solver.SAT_Riss_Solver import SAT_Riss_Solver
 
 if __name__ == "__main__":
-    N = 30
     ESTIMATOR_PCT = 0.5
 
-    test_instances = TSP_from_index_file(filepath=TEST_DIR / "index.json")
-    instances = TSP_from_index_file(filepath=TRAIN_DIR / "index.json")
+    instances = SAT_from_index_file(
+        filepath=DATA_DIR / "SAT" / "index.json",
+        max_cost=100.0,
+        max_time=10.0,
+    )
 
-    number_of_instances = N // 5
-    train_instances = InstanceList()
-    for i in range(5):
-        train_instances.extend(instances[i * 200 : i * 200 + number_of_instances])
+    train_instances = instances[:15] + instances[80:95]
+    test_instances = instances[15:65] + instances[95:145]
+    for instance in test_instances:
+        instance.max_cost = 1000.0
+        instance.max_time = 100.0
 
     portfolio = Portfolio.from_solver_class(SAT_Riss_Solver, size=2)
 
@@ -46,8 +48,8 @@ if __name__ == "__main__":
             last_model_iter = aac.iter
             aac.update(estimator=estimator)
 
-    for i in range(100):
-        portfolio.evaluate(
+    for i in range(10):
+        portfolio.evalusate(
             test_instances,
             prefix=f"test{i}",
             calculate_features=False,
