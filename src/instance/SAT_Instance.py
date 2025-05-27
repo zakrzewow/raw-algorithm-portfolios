@@ -11,8 +11,8 @@ from src.instance.InstanceList import InstanceList
 from src.log import logger
 from src.utils import ResultWithTime, Timer
 
-with open(DATA_DIR / "SAT" / "features.json", "r") as f:
-    FEATURES = json.load(f)
+# with open(DATA_DIR / "SAT" / "features.json", "r") as f:
+# FEATURES = json.load(f)
 
 
 class SAT_Instance(Instance):
