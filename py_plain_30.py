@@ -6,7 +6,7 @@ from src.solver.SAT_Riss_Solver import SAT_Riss_Solver
 
 if __name__ == "__main__":
     instances = SAT_from_index_file(
-        filepath=DATA_DIR / "SAT" / "index_u75.json",
+        filepath=DATA_DIR / "SAT" / "index_u150.json",
         max_cost=100.0,
         max_time=10.0,
     )
