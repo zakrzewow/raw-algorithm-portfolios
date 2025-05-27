@@ -140,14 +140,14 @@ class SAT_Instance(Instance):
 
     @classmethod
     def _calculate_features(cls, instance: "Instance") -> ResultWithTime:
-        # with Timer() as timer:
-        #     ubc_features = instance._calculate_ubc_features()
-        #     features = {**instance.FEATURES, **ubc_features}
-        # return ResultWithTime(features, timer.elapsed_time)
-        dict_ = FEATURES.get(instance.id(), {})
-        result = dict_.get("result", {})
-        time = dict_.get("time", 0.0)
-        return ResultWithTime(result, time)
+        with Timer() as timer:
+            ubc_features = instance._calculate_ubc_features()
+            features = {**instance.FEATURES, **ubc_features}
+        return ResultWithTime(features, timer.elapsed_time)
+        # dict_ = FEATURES.get(instance.id(), {})
+        # result = dict_.get("result", {})
+        # time = dict_.get("time", 0.0)
+        # return ResultWithTime(result, time)
 
 
 def SAT_from_index_file(
