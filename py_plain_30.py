@@ -1,45 +1,24 @@
 from src.aac.AAC import AAC
-from src.constant import TEST_DIR, TRAIN_DIR
-from src.instance.InstanceList import InstanceList
-from src.instance.SAT_Instance import TSP_from_index_file
+from src.constant import DATA_DIR
+from src.instance.SAT_Instance import SAT_from_index_file
 from src.solver.Portfolio import Portfolio
 from src.solver.SAT_Riss_Solver import SAT_Riss_Solver
 
 if __name__ == "__main__":
-    N = 30
-
-    test_instances = TSP_from_index_file(
-        filepath=TEST_DIR / "index.json",
-        max_cost=26.6,
-        max_time=2.66,
+    instances = SAT_from_index_file(
+        filepath=DATA_DIR / "SAT" / "index.json",
+        max_cost=100.0,
+        max_time=10.0,
     )
-    instances = TSP_from_index_file(
-        filepath=TRAIN_DIR / "index.json",
-        max_cost=0.5,
-        max_time=0.05,
-    )
-
-    number_of_instances = N // 5
-    train_instances = InstanceList()
-    for i in range(5):
-        train_instances.extend(instances[i * 200 : i * 200 + number_of_instances])
 
     portfolio = Portfolio.from_solver_class(SAT_Riss_Solver, size=2)
 
     aac = AAC(
         portfolio=portfolio,
-        instance_list=train_instances,
+        instance_list=instances,
         prefix="config",
         max_iter=75,
         calculate_features=False,
         estimator=None,
     )
     aac.configure()
-
-    for i in range(200):
-        portfolio.evaluate(
-            test_instances,
-            prefix=f"test{i}",
-            calculate_features=False,
-            cache=False,
-        )

@@ -68,7 +68,8 @@ class SAT_Riss_Solver(Solver):
             if "c CPU time" in line and line.strip().endswith("s"):
                 time_str = line.split(":")[-1].strip().replace("s", "").strip()
                 time = float(time_str)
-                # break
+            if "s UNKNOWN" in line or "s UNSATISFIABLE" in line:
+                raise Exception(f"Solver returned {line.strip()}")
         if time is None:
             raise Exception("CPU time not found")
         return min(time, instance.max_time)
