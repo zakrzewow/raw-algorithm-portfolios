@@ -40,10 +40,8 @@ if __name__ == "__main__":
     for _ in aac.configure_iter():
         if aac.iter >= 37 and aac.iter - last_model_iter >= 5:
             X, y = get_model_training_data(db)
-            estimator = Estimator1(
-                max_cost=SAT_Riss_Solver.MAX_COST, estimator_pct=ESTIMATOR_PCT
-            )
-            estimator.fit(X, y)
+            estimator = Estimator1(max_cost=100.0, estimator_pct=ESTIMATOR_PCT)
+            estimator.fsit(X, y)
             estimator.log()
             last_model_iter = aac.iter
             aac.update(estimator=estimator)

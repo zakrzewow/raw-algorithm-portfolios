@@ -24,6 +24,7 @@ for i in range(3):
 db = DB()
 
 X, y = get_model_training_data(db)
-estimator = Estimator1(max_cost=SAT_Riss_Solver.MAX_COST, estimator_pct=0.5)
+print(X, y)
+estimator = Estimator1(max_cost=100.0, estimator_pct=0.5)
 estimator.fit(X, y)
 estimator.log()
