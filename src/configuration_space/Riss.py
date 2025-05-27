@@ -494,21 +494,21 @@ CONFIGURATION_SPACE = ConfigurationSpace(
         #     items=["on", "off"],
         #     default="off",
         # ),
-        Categorical(
-            name="delay-units",
-            items=["on", "off"],
-            default="off",
-        ),
-        Categorical(
-            name="usePP",
-            items=["on", "off"],
-            default="on",
-        ),
-        Categorical(
-            name="useIP",
-            items=["on", "off"],
-            default="on",
-        ),
+        # Categorical(
+        #     name="delay-units",
+        #     items=["on", "off"],
+        #     default="off",
+        # ),
+        # Categorical(
+        #     name="usePP",
+        #     items=["on", "off"],
+        #     default="on",
+        # ),
+        # Categorical(
+        #     name="useIP",
+        #     items=["on", "off"],
+        #     default="on",
+        # ),
         # Integer(
         #     name="nanosleep",
         #     bounds=(0, 2147483647),
