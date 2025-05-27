@@ -68,22 +68,6 @@ CLAUSE SHARING OPTIONS:
         when to share clause (0=new,1=prop,2=analyse) #NoAutoT
 
 
-CORE OPTIONS:
-
-  -solve_stats, -no-solve_stats                           (default: off)
-
-        print stats about solving process #NoAutoT
-
-  -rmf, -no-rmf                                           (default: off)
-
-        use fast remove
-
-
-  -gc-frac      = <double> (   0 ..    1) (default: 0.2)
-
-        The fraction of wasted memory allowed before a garbage collection is triggered
-
-
 CORE -- CONFLICT ANALYSIS OPTIONS:
 
   -learnDecRER, -no-learnDecRER                           (default: off)

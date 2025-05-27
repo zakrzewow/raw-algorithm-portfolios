@@ -2,7 +2,6 @@ from ConfigSpace import Categorical, ConfigurationSpace, Float, Integer
 
 from src.constant import SEED
 
-
 CONFIGURATION_SPACE = ConfigurationSpace(
     seed=SEED,
     space=[
@@ -27,7 +26,6 @@ CONFIGURATION_SPACE = ConfigurationSpace(
             bounds=(0, 2147483647),
             default=0,
         ),
-        
         # CLAUSE SHARING OPTIONS
         Categorical(
             name="receive",
@@ -79,24 +77,6 @@ CONFIGURATION_SPACE = ConfigurationSpace(
             bounds=(0, 2),
             default=1,
         ),
-        
-        # CORE OPTIONS
-        Categorical(
-            name="solve_stats",
-            items=["on", "off"],
-            default="off",
-        ),
-        Categorical(
-            name="rmf",
-            items=["on", "off"],
-            default="off",
-        ),
-        Float(
-            name="gc-frac",
-            bounds=(0, 1),
-            default=0.2,
-        ),
-        
         # CONFLICT ANALYSIS OPTIONS
         Categorical(
             name="learnDecRER",
@@ -113,14 +93,12 @@ CONFIGURATION_SPACE = ConfigurationSpace(
             bounds=(2, 2147483647),
             default=2,
         ),
-        
         # EXTENDED RESOLUTION RER OPTIONS
         Categorical(
             name="rer",
             items=["on", "off"],
             default="off",
         ),
-        
         # INCREMENTAL OPTIONS
         Categorical(
             name="incSaveState",
@@ -162,21 +140,18 @@ CONFIGURATION_SPACE = ConfigurationSpace(
             bounds=(0, 2147483647),
             default=100000,
         ),
-        
         # INTERLEAVED CLAUSE STRENGTHENING OPTIONS
         Categorical(
             name="ics",
             items=["on", "off"],
             default="off",
         ),
-        
         # LOCAL LOOK AHEAD OPTIONS
         Categorical(
             name="laHack",
             items=["on", "off"],
             default="off",
         ),
-        
         # MINIMIZE OPTIONS
         Categorical(
             name="refConflict",
@@ -188,11 +163,11 @@ CONFIGURATION_SPACE = ConfigurationSpace(
             items=["on", "off"],
             default="off",
         ),
-        Categorical(
-            name="eac",
-            items=["on", "off"],
-            default="off",
-        ),
+        # Categorical(
+        #     name="eac",
+        #     items=["on", "off"],
+        #     default="off",
+        # ),
         Categorical(
             name="dpll",
             items=["on", "off"],
@@ -243,7 +218,6 @@ CONFIGURATION_SPACE = ConfigurationSpace(
             bounds=(0, 3),
             default=0,
         ),
-        
         # REDUCE OPTIONS
         Categorical(
             name="lbdIgnL0",
@@ -335,7 +309,6 @@ CONFIGURATION_SPACE = ConfigurationSpace(
             bounds=(0, 2147483647),
             default=0,
         ),
-        
         # RESTART OPTIONS
         Categorical(
             name="r-dyn-bl",
@@ -397,14 +370,12 @@ CONFIGURATION_SPACE = ConfigurationSpace(
             bounds=(-1, 2147483647),
             default=-1,
         ),
-        
         # RESTART SWITCHING OPTIONS
         Integer(
             name="rsw-int",
             bounds=(0, 2147483647),
             default=0,
         ),
-        
         # SEARCH OPTIONS
         Float(
             name="var-decay-b",
@@ -481,7 +452,6 @@ CONFIGURATION_SPACE = ConfigurationSpace(
             bounds=(0, 3),
             default=0,
         ),
-        
         # INIT OPTIONS
         Categorical(
             name="rnd-init",
@@ -518,13 +488,12 @@ CONFIGURATION_SPACE = ConfigurationSpace(
             bounds=(0, 3),
             default=0,
         ),
-        
         # MISC OPTIONS
-        Categorical(
-            name="ppOnly",
-            items=["on", "off"],
-            default="off",
-        ),
+        # Categorical(
+        #     name="ppOnly",
+        #     items=["on", "off"],
+        #     default="off",
+        # ),
         Categorical(
             name="delay-units",
             items=["on", "off"],
@@ -540,27 +509,26 @@ CONFIGURATION_SPACE = ConfigurationSpace(
             items=["on", "off"],
             default="on",
         ),
-        Integer(
-            name="nanosleep",
-            bounds=(0, 2147483647),
-            default=0,
-        ),
-        Integer(
-            name="sInterval",
-            bounds=(0, 2147483647),
-            default=0,
-        ),
-        Integer(
-            name="solververb",
-            bounds=(0, 2),
-            default=0,
-        ),
-        Integer(
-            name="incsverb",
-            bounds=(0, 2),
-            default=0,
-        ),
-        
+        # Integer(
+        #     name="nanosleep",
+        #     bounds=(0, 2147483647),
+        #     default=0,
+        # ),
+        # Integer(
+        #     name="sInterval",
+        #     bounds=(0, 2147483647),
+        #     default=0,
+        # ),
+        # Integer(
+        #     name="solververb",
+        #     bounds=(0, 2),
+        #     default=0,
+        # ),
+        # Integer(
+        #     name="incsverb",
+        #     bounds=(0, 2),
+        #     default=0,
+        # ),
         # MiPiSAT OPTIONS
         Integer(
             name="prob-step-width",
@@ -572,14 +540,12 @@ CONFIGURATION_SPACE = ConfigurationSpace(
             bounds=(1, 2147483647),
             default=32,
         ),
-        
         # REASON OPTIONS
         Categorical(
             name="longConflict",
             items=["on", "off"],
             default="off",
         ),
-        
         # SEARCH -- OTFSS OPTIONS
         Categorical(
             name="otfss",
@@ -596,14 +562,12 @@ CONFIGURATION_SPACE = ConfigurationSpace(
             bounds=(2, 2147483647),
             default=30,
         ),
-        
         # cir-minisat OPTIONS
         Integer(
             name="cir-bump",
             bounds=(0, 2147483647),
             default=0,
         ),
-        
         # COPROCESSOR OPTIONS
         Categorical(
             name="enabled_cp3",
