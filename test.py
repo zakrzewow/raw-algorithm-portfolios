@@ -15,4 +15,4 @@ for i in range(3):
         try:
             solver.solve(instance, prefix=f"test-{i}", cache=False)
         except Exception as e:
-            print(f"Error solving instance {instance.name}: {e}")
+            print(f"Error solving instance {instance}: {e}")
