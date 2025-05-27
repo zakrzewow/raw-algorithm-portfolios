@@ -3,7 +3,7 @@ from src.instance.SAT_Instance import SAT_from_index_file
 from src.solver.SAT_Riss_Solver import SAT_Riss_Solver
 
 instances = SAT_from_index_file(
-    filepath=DATA_DIR / "SAT" / "index_simple.json",
+    filepath=DATA_DIR / "SAT" / "index_u75.json",
     max_cost=100.0,
     max_time=10.0,
 )
