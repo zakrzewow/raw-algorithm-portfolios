@@ -21,7 +21,7 @@ if __name__ == "__main__":
 
     aac = AAC(
         portfolio=portfolio,
-        instance_list=instances,
+        instance_list=train_instances,
         prefix="config",
         max_iter=75,
         calculate_features=False,
