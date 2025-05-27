@@ -44,7 +44,17 @@ class SAT_Riss_Solver(Solver):
     def _get_params(self) -> list[str]:
         params = []
         for k, v in self.config.items():
-            params.append(f"-{k}={v:.2f}")
+            if isinstance(v, str):
+                if v == "on":
+                    params.append(f"-{k}")
+                elif v == "off":
+                    params.append(f"-no-{k}")
+                else:
+                    print("Unknown string value:", v)
+            elif isinstance(v, int):
+                params.append(f"-{k}={v}")
+            elif isinstance(v, float):
+                params.append(f"-{k}={v:.4f}")
         return params
 
     def _parse_result(

@@ -1,0 +1,589 @@
+USAGE: /home2/faculty/gzakrzewski/riss-solver/build/bin/riss [options] <input-file> <result-output-file>
+
+  where input may be either in plain or gzipped DIMACS.
+
+999HACK OPTIONS:
+
+  -act-based, -no-act-based                               (default: off)
+
+        use activity for learned clauses
+
+
+  -reduce-frac  = <double> (   0 ..    1) (default: 0.5)
+
+        Remove this quota of learnt clauses when database is reduced
+
+
+  -lbd-core-th  = <int32>  [   0 .. imax] (default: 0)
+
+        Saving learnt clause forever if LBD deceeds this threshold
+
+  -size-core    = <int32>  [   0 .. imax] (default: 0)
+
+        Saving learnt clause forever if size deceeds this threshold
+
+
+CLAUSE SHARING OPTIONS:
+
+  -receive, -no-receive                                   (default: on)
+
+        receive shared clauses/equivalences #NoAutoT
+
+  -recEE, -no-recEE                                       (default: off)
+
+        receive equivalent literal classes #NoAutoT
+
+  -refRec, -no-refRec                                     (default: off)
+
+        refine received clauses (vivification) #NoAutoT
+
+  -resRefRec, -no-resRefRec                               (default: off)
+
+        share refined clauses again #NoAutoT
+
+  -sendAll, -no-sendAll                                   (default: off)
+
+        ignore sharing limits and sends clause right away #NoAutoT
+
+  -dynLimits, -no-dynLimits                               (default: off)
+
+        use dynamic sharing limits #NoAutoT
+
+  -keepLonger, -no-keepLonger                             (default: off)
+
+        keep clauses for at least one remove round #NoAutoT
+
+  -independent, -no-independent                           (default: off)
+
+        work on parsed formula (ignore global simplification, sharing currently unsound) #NoAutoT
+
+
+  -recLBDf      = <double> [ -10 ..    1] (default: 0)
+
+        how to construct LBD of received clause (0=0, pos: relative to size, neg: relative to avg LBD/size ratio #NoAutoT
+
+
+  -shareTime    = <int32>  [   0 ..    2] (default: 1)
+
+        when to share clause (0=new,1=prop,2=analyse) #NoAutoT
+
+
+CORE OPTIONS:
+
+  -solve_stats, -no-solve_stats                           (default: off)
+
+        print stats about solving process #NoAutoT
+
+  -rmf, -no-rmf                                           (default: off)
+
+        use fast remove
+
+
+  -gc-frac      = <double> (   0 ..    1) (default: 0.2)
+
+        The fraction of wasted memory allowed before a garbage collection is triggered
+
+
+CORE -- CONFLICT ANALYSIS OPTIONS:
+
+  -learnDecRER, -no-learnDecRER                           (default: off)
+
+        consider decision clauses for RER?
+
+
+  -learnDecP    = <int32>  [  -1 ..  100] (default: -1)
+
+        if LBD of is > percent of decisionlevel, learn decision Clause (Knuth), -1 = off
+
+  -learnDecMS   = <int32>  [   2 .. imax] (default: 2)
+
+        min size so that decision clauses are learned, -1 = off
+
+
+CORE -- EXTENDED RESOLUTION RER OPTIONS:
+
+  -rer, -no-rer                                           (default: off)
+
+        perform restricted extended resolution (along Audemard ea 2010)
+
+
+CORE -- INCREMENTAL OPTIONS:
+
+  -incSaveState, -no-incSaveState                         (default: off)
+
+        do not jump back to level 0 after search finished #NoAutoT
+
+  -incRestartA, -no-incRestartA                           (default: on)
+
+        do not jump back over assumptions during restart #NoAutoT
+
+
+  -incResAct    = <int32>  [   0 .. imax] (default: 0)
+
+        when incrementally called, reset activity every X calls (0=off)  #NoAutoT
+
+  -incResPol    = <int32>  [   0 .. imax] (default: 0)
+
+        when incrementally called, reset polarities every X calls (0=off)  #NoAutoT
+
+  -incClean     = <int32>  [   0 .. imax] (default: 0)
+
+        when incrementally called, extra clean learnt data base every X calls (0=off)  #NoAutoT
+
+  -incClSize    = <int32>  [   1 .. imax] (default: 5)
+
+        keep size for extra cleaning (any higher is dropped)  #NoAutoT
+
+  -incClLBD     = <int32>  [   1 .. imax] (default: 10)
+
+        keep lbd for extra cleaning (any higher is dropped)  #NoAutoT
+
+  -incResCnt    = <int32>  [   0 .. imax] (default: 100000)
+
+        reset solving counters every X start (0=off)  #NoAutoT
+
+
+CORE -- INTERLEAVED CLAUSE STRENGTHENING OPTIONS:
+
+  -ics, -no-ics                                           (default: off)
+
+        perform interleaved clause strengthening (along Wieringa ea 2013)
+
+
+CORE -- LOCAL LOOK AHEAD OPTIONS:
+
+  -laHack, -no-laHack                                     (default: off)
+
+        enable lookahead on level 0
+
+
+CORE -- MINIMIZE OPTIONS:
+
+  -refConflict, -no-refConflict                           (default: on)
+
+        refine conflict clause after solving with assumptions
+
+  -revRevC, -no-revRevC                                   (default: off)
+
+        reverse new conflict clause after reverse minimization
+
+  -eac, -no-eac                                           (default: off)
+
+        abort search as soon as assumtions conflict
+
+  -dpll, -no-dpll                                         (default: off)
+
+        Perform DPLL instead of CDCL (no restarts, no learning) #NoAutoT
+
+  -biAsserting, -no-biAsserting                           (default: off)
+
+        Learn bi-asserting clauses, if possible (do not learn asserting clause!)
+
+  -updLearnAct, -no-updLearnAct                           (default: on)
+
+        UPDATEVARACTIVITY trick (see glucose competition'09 companion paper)
+
+  -revMin, -no-revMin                                     (default: on)
+
+        minimize learned clause by using reverse vivification
+
+
+  -prefA        = <int32>  [   0 ..    4] (default: 0)
+
+        check whether a later assumption is already falsified at each assumption decision (0=off,1=last,2=random,3=middle,4=remaining)
+
+  -minSizeMinimizingClause = <int32>  [   0 .. imax] (default: 30)
+
+        The min size required to minimize clause
+
+  -minLBDMinimizingClause = <int32>  [   0 .. imax] (default: 6)
+
+        The min LBD required to minimize clause
+
+  -ccmin-mode   = <int32>  [   0 ..    2] (default: 2)
+
+        Controls conflict clause minimization (0=none, 1=basic, 2=deep)
+
+  -minmaxsize   = <int32>  [   0 .. imax] (default: 0)
+
+        maximal learned clause size to apply minimization
+
+  -sUhdProbe    = <int32>  [   0 ..    3] (default: 0)
+
+        perform probing based on learned clauses (off,linear,quadratic,larger)
+
+
+CORE -- PROOF OPTIONS:
+
+  -rup-only, -no-rup-only                                 (default: off)
+
+        do not print delete lines into proof #NoAutoT
+
+
+  -verb-proof   = <int32>  [   0 ..    2] (default: 0)
+
+        also print comments into the proof, 2=print proof also to stderr #NoAutoT
+
+  -proof-oft-check = <int32>  [   0 ..   10] (default: 0)
+
+        check proof construction during execution (1=on, higher => more verbose checking) #NoAutoT
+
+
+CORE -- REDUCE OPTIONS:
+
+  -lbdIgnL0, -no-lbdIgnL0                                 (default: off)
+
+        ignore top level literals for LBD calculation
+
+  -lbdIgnLA, -no-lbdIgnLA                                 (default: off)
+
+        ignore top level literals for LBD calculation
+
+  -incLBD, -no-incLBD                                     (default: off)
+
+        allow to increment lbd of clauses dynamically
+
+  -remIncLBD, -no-remIncLBD                               (default: off)
+
+        reset delete flag if LBD of a learned clause increases
+
+  -quickRed, -no-quickRed                                 (default: off)
+
+        check only first two literals for being satisfied
+
+
+  -keepWorst    = <double> [   0 ..    1] (default: 0.01)
+
+        keep this (relative to all learned) number of worst learned clauses during removal
+
+  -rem-lsf      = <double> (   0 ..  inf) (default: 0.333333)
+
+        factor of learnts compared to original formula
+
+  -rem-lsi      = <double> (   0 ..  inf) (default: 1.1)
+
+        learnt size increase
+
+  -rem-asi      = <double> (   0 ..  inf) (default: 1.1)
+
+        learnt size increase
+
+  -cla-decay    = <double> (   0 ..    1) (default: 0.999)
+
+        The clause activity decay factor
+
+
+  -firstReduceDB = <int32>  [   0 .. imax] (default: 4000)
+
+        The number of conflicts before the first reduce DB
+
+  -incReduceDB  = <int32>  [   0 .. imax] (default: 300)
+
+        Increment for reduce DB
+
+  -specialIncReduceDB = <int32>  [   0 .. imax] (default: 1000)
+
+        Special increment for reduce DB
+
+  -minLBDFrozenClause = <int32>  [   0 .. imax] (default: 30)
+
+        Protect clauses if their LBD decrease and is lower than (for one turn)
+
+  -lbdupd       = <int32>  [   0 ..    2] (default: 1)
+
+        update LBD during (0=propagation,1=learning,2=never),
+
+  -remtype      = <int32>  [   0 ..    2] (default: 0)
+
+        remove clauses (0=glucose/dynamic,1=minisat/geometric,2=fixed limit)
+
+  -rem-asc      = <int32>  [   0 .. imax] (default: 100)
+
+        first number of conflicts to adjust learnt factors
+
+  -maxlearnts   = <int32>  [   0 .. imax] (default: 0)
+
+        number of learnt clauses to initialize geometric/static removal
+
+
+CORE -- RESTART OPTIONS:
+
+  -r-dyn-bl, -no-r-dyn-bl                                 (default: on)
+
+        Perform dynamic restarts blocking
+
+  -r-dyn-ema, -no-r-dyn-ema                               (default: off)
+
+        Perform dynamic restarts based on EMA
+
+
+  -K            = <double> (   0 ..    1) (default: 0.8)
+
+        The constant used to force restart
+
+  -R            = <double> (   1 ..    5) (default: 1.4)
+
+        The constant used to block restart
+
+
+  -szLBDQueue   = <int32>  [  10 .. 100000] (default: 50)
+
+        The size of moving average for LBD (restarts)
+
+  -szTrailQueue = <int32>  [  10 .. 100000] (default: 5000)
+
+        The size of moving average for trail (block restarts)
+
+  -sbr          = <int32>  [   0 .. imax] (default: 12)
+
+        use removal with clause activity based on sbr (randomized)
+
+  -lpd          = <int32>  [   0 .. 4096] (default: 0)
+
+        decisions to be performed based on previous decisions (0=off)
+
+  -rlevel       = <int32>  [   0 ..    2] (default: 2)
+
+        Choose to which level to jump to: 0=0, 1=ReusedTrail, 2=recursive reused trail
+
+  -rtype        = <int32>  [   0 ..    4] (default: 0)
+
+        Choose type of restart (0=dynamic,1=luby,2=geometric,3=static,4=none)
+
+  -r-min-noBlock = <int32>  [   1 .. imax] (default: 10000)
+
+        Do not allow restart blocking before this number of conflicts
+
+  -rMax         = <int32>  [  -1 .. imax] (default: -1)
+
+        initial max. interval between two restarts (-1 = off)
+
+
+CORE -- RESTART SWITCHING OPTIONS:
+
+  -rsw-int      = <int32>  [   0 .. imax] (default: 0)
+
+        First interval for restart heuristic switching (>0 to activate)
+
+
+CORE -- SEARCH OPTIONS:
+
+  -var-decay-b  = <double> (   0 ..    1) (default: 0.95)
+
+        The variable activity decay factor start value
+
+  -var-decay-e  = <double> (   0 ..    1) (default: 0.95)
+
+        The variable activity decay factor stop value
+
+  -var-decay-i  = <double> (   0 ..    1) (default: 0.01)
+
+        The variable activity decay factor increase
+
+  -rnd-freq     = <double> [   0 ..    1] (default: 0)
+
+        The frequency with which the decision heuristic tries to choose a random variable
+
+  -rnd-seed     = <double> (   0 ..  inf) (default: 9.16483e+07)
+
+        Used by the random variable selection
+
+  -vsids-s      = <double> [   0 ..    1] (default: 1)
+
+        interpolate between VSIDS and VMTF,start value
+
+  -vsids-e      = <double> [   0 ..    1] (default: 1)
+
+        interpolate between VSIDS and VMTF, end value
+
+  -vsids-i      = <double> [   0 ..    1] (default: 1)
+
+        interpolate between VSIDS and VMTF, inc during update
+
+
+  -var-decay-d  = <int32>  [   1 .. imax] (default: 5000)
+
+        Nr. of conflicts for activity decay increase
+
+  -phase-saving = <int32>  [   0 ..    2] (default: 2)
+
+        Controls the level of phase saving (0=none, 1=limited, 2=full)
+
+  -phase-bit    = <int32>  [   0 .. imax] (default: 0)
+
+        decision level until which the bit phase is used
+
+  -alluiphack   = <int32>  [   0 ..    2] (default: 0)
+
+        learn all unit UIPs at any level
+
+  -vsids-d      = <int32>  [   1 .. imax] (default: 2147483647)
+
+        interpolate between VSIDS and VMTF, numer of conflits until next update
+
+  -varActB      = <int32>  [   0 ..    2] (default: 0)
+
+        bump activity of a variable (0 as usual, 1 relativ to cls size, 2 relative to LBD)
+
+  -clsActB      = <int32>  [   0 ..    3] (default: 0)
+
+        bump activity of a clause (0 as usual, 1 relativ to cls size, 2 relative to LBD, 3 SBR)
+
+
+Contrasat OPTIONS:
+
+  -pq-order, -no-pq-order                                 (default: off)
+
+        Use priority queue to decide the order in which literals are implied  #NoAutoT
+
+
+DEBUG OPTIONS:
+
+  -printOnSolve = <std::string>
+
+        print formula present at call solve to given filename and exit #NoAutoT
+
+
+INIT OPTIONS:
+
+  -rnd-init, -no-rnd-init                                 (default: off)
+
+        Randomize the initial activity
+
+  -polMode, -no-polMode                                   (default: off)
+
+        invert provided polarities #NoAutoT
+
+
+  -actStart     = <double> (   0 ..  inf) (default: 2048)
+
+        highest value for first variable
+
+  -actDec       = <double> (   0 ..   10] (default: 1.05263)
+
+        decrease per element (sub, or divide)
+
+
+  -init-act     = <int32>  [   0 ..    6] (default: 3)
+
+        initialize activities (0=none,1=inc-lin,2=inc-geo,3=dec-lin,4=dec-geo,5=rnd,6=abs(jw))
+
+  -init-pol     = <int32>  [   0 ..    6] (default: 0)
+
+        initialize polarity (0=none,1=JW-pol,2=JW-neg,3=MOMS,4=MOMS-neg,5=rnd,6=pos)
+
+  -actIncMode   = <int32>  [   0 ..    3] (default: 0)
+
+        how to inc 0=lin, 1=geo,2=reverse-lin,3=reverse-geo
+
+
+  -actFile    = <std::string>
+
+        increase activities of those variables
+
+  -polFile    = <std::string>
+
+        use these polarities
+
+
+MISC OPTIONS:
+
+  -ppOnly, -no-ppOnly                                     (default: off)
+
+        interrupts search after preprocessing #NoAutoT
+
+  -delay-units, -no-delay-units                           (default: off)
+
+        does not propagate unit clauses until solving is initialized  #NoAutoT
+
+  -usePP, -no-usePP                                       (default: on)
+
+        use preprocessor for preprocessing #NoAutoT
+
+  -useIP, -no-useIP                                       (default: on)
+
+        use preprocessor for inprocessing #NoAutoT
+
+
+  -nanosleep    = <int32>  [   0 .. imax] (default: 0)
+
+        For each conflict sleep this amount of nano seconds #NoAutoT
+
+  -sInterval    = <int32>  [   0 .. imax] (default: 0)
+
+        how often to perform simplifications on level 0
+
+  -solververb   = <int32>  [   0 ..    2] (default: 0)
+
+        Verbosity level (0=silent, 1=some, 2=more). #NoAutoT
+
+  -incsverb     = <int32>  [   0 ..    2] (default: 0)
+
+        Verbosity level for MaxSAT (0=silent, 1=some, 2=more). #NoAutoT
+
+
+MiPiSAT OPTIONS:
+
+  -prob-step-width = <int32>  [   0 .. imax] (default: 0)
+
+        Perform failed literals and detection of necessary assignments each n times
+
+  -prob-limit   = <int32>  [   1 .. imax] (default: 32)
+
+        Limit how many variables with highest activity should be probed
+
+
+REASON OPTIONS:
+
+  -longConflict, -no-longConflict                         (default: off)
+
+        if a binary conflict is found, check for a longer one!
+
+
+SCHEDULE OPTIONS:
+
+  -sschedule  = <std::string>
+
+        specify configs to be schedules
+
+
+SEARCH -- OTFSS OPTIONS:
+
+  -otfss, -no-otfss                                       (default: off)
+
+        perform otfss during conflict analysis
+
+  -otfssL, -no-otfssL                                     (default: off)
+
+        otfss for learnt clauses
+
+
+  -otfssMLDB    = <int32>  [   2 .. imax] (default: 30)
+
+        max. LBD of learnt clauses that are candidates for otfss
+
+
+cir-minisat OPTIONS:
+
+  -cir-bump     = <int32>  [   0 .. imax] (default: 0)
+
+        Activates CIR with bump ratio for VSIDS score (choose large: 9973)
+
+
+USAGE: /home2/faculty/gzakrzewski/riss-solver/build/bin/riss [options] <input-file> <result-output-file>
+
+  where input may be either in plain or gzipped DIMACS.
+
+COPROCESSOR OPTIONS:
+
+  -enabled_cp3, -no-enabled_cp3                           (default: on)
+
+USAGE: /home2/faculty/gzakrzewski/riss-solver/build/bin/riss [options] <input-file> <result-output-file>
+
+  where input may be either in plain or gzipped DIMACS.
+
+COPROCESSOR OPTIONS:
+
+  -enabled_cp3, -no-enabled_cp3                           (default: on)
+
+        Use CP3
