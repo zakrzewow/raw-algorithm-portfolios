@@ -16,8 +16,8 @@ if __name__ == "__main__":
         max_time=10.0,
     )
 
-    train_instances = instances[:15] + instances[80:95]
-    test_instances = instances[15:65] + instances[95:145]
+    train_instances = instances[:30]
+    test_instances = instances[30:80]
     for instance in test_instances:
         instance.max_cost = 1000.0
         instance.max_time = 100.0
@@ -47,7 +47,7 @@ if __name__ == "__main__":
             aac.update(estimator=estimator)
 
     for i in range(10):
-        portfolio.evalusate(
+        portfolio.evaluate(
             test_instances,
             prefix=f"test{i}",
             calculate_features=False,

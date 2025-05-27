@@ -10,8 +10,7 @@ if __name__ == "__main__":
         max_time=10.0,
     )
     features = {}
-    train_instances = instances[:15] + instances[80:95]
-    for instance in train_instances:
+    for instance in instances:
         print(f"Calculating features for instance {instance=}")
         result_with_time = instance.calculate_features()
         features[instance.id()] = {
