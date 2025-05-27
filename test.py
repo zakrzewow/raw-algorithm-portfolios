@@ -12,4 +12,7 @@ for i in range(3):
     solver = SAT_Riss_Solver()
 
     for instance in instances:
-        solver.solve(instance, prefix=f"test-{i}", cache=False)
+        try:
+            solver.solve(instance, prefix=f"test-{i}", cache=False)
+        except Exception as e:
+            print(f"Error solving instance {instance.name}: {e}")
