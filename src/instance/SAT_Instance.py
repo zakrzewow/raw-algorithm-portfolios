@@ -123,11 +123,11 @@ class SAT_Instance(Instance):
             )
             logger.debug(f"[{self}] result={result}")
             output = result.stdout.strip().splitlines()
-            for line in output:
-                logger.debug(f"[{self}] {line}")
+            # for line in output:
+            # logger.debug(f"[{self}] {line}")
 
-            header = output[0].split(",")
-            values = output[1].split(",")
+            header = output[-2].split(",")
+            values = output[-1].split(",")
 
             feature_dict = {header[i]: float(values[i]) for i in range(len(header))}
             return feature_dict
