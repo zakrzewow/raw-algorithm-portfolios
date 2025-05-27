@@ -69,7 +69,6 @@ class SAT_Riss_Solver(Solver):
     ) -> float:
         time = None
         for line in result.stdout.splitlines():
-            print(line)
             if "c CPU time" in line and line.strip().endswith("s"):
                 time_str = line.split(":")[-1].strip().replace("s", "").strip()
                 time = float(time_str)

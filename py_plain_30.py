@@ -6,10 +6,16 @@ from src.solver.SAT_Riss_Solver import SAT_Riss_Solver
 
 if __name__ == "__main__":
     instances = SAT_from_index_file(
-        filepath=DATA_DIR / "SAT" / "index_u150.json",
+        filepath=DATA_DIR / "SAT" / "index.json",
         max_cost=100.0,
         max_time=10.0,
     )
+
+    train_instances = instances[:15] + instances[80:95]
+    test_instances = instances[15:65] + instances[95:145]
+    for instance in test_instances:
+        instance.max_cost = 1000.0
+        instance.max_time = 100.0
 
     portfolio = Portfolio.from_solver_class(SAT_Riss_Solver, size=2)
 
@@ -22,3 +28,11 @@ if __name__ == "__main__":
         estimator=None,
     )
     aac.configure()
+
+    for i in range(10):
+        portfolio.evalusate(
+            test_instances,
+            prefix=f"test{i}",
+            calculate_features=False,
+            cache=False,
+        )

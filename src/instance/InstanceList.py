@@ -35,3 +35,8 @@ class InstanceList(list):
     @property
     def size(self):
         return len(self)
+
+    def __add__(self, other):
+        if isinstance(other, InstanceList):
+            return InstanceList(super().__add__(other))
+        return NotImplemented
