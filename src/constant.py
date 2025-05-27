@@ -26,3 +26,6 @@ R_HOME = Path.home() / "miniconda3" / "envs" / "SMAC" / "lib" / "R"
 
 # SAT
 RISS_PATH = "/home2/faculty/gzakrzewski/riss-solver/build/bin/riss"
+UBC_SAT_FEATURE_PATH = (
+    "/home2/faculty/gzakrzewski/SAT-features-competition2012/features"
+)

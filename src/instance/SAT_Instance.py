@@ -1,17 +1,74 @@
 import json
+import subprocess
 from pathlib import Path
 
 import numpy as np
 
-from src.constant import DATA_DIR, SEED
+from src.constant import DATA_DIR, SEED, UBC_SAT_FEATURE_PATH
 from src.database import DB
 from src.instance.Instance import Instance
 from src.instance.InstanceList import InstanceList
-from src.utils import ResultWithTime
+from src.log import logger
+from src.utils import ResultWithTime, Timer
 
 
 class SAT_Instance(Instance):
-    FEATURES = {}
+    FEATURES = {
+        "nvarsOrig": 0.0,
+        "nclausesOrig": 0.0,
+        "nvars": 0.0,
+        "nclauses": 0.0,
+        "reducedVars": 0.0,
+        "reducedClauses": 0.0,
+        "Pre-featuretime": 0.0,
+        "vars-clauses-ratio": 0.0,
+        "POSNEG-RATIO-CLAUSE-mean": 0.0,
+        "POSNEG-RATIO-CLAUSE-coeff-variation": 0.0,
+        "POSNEG-RATIO-CLAUSE-min": 0.0,
+        "POSNEG-RATIO-CLAUSE-max": 0.0,
+        "POSNEG-RATIO-CLAUSE-entropy": 0.0,
+        "VCG-CLAUSE-mean": 0.0,
+        "VCG-CLAUSE-coeff-variation": 0.0,
+        "VCG-CLAUSE-min": 0.0,
+        "VCG-CLAUSE-max": 0.0,
+        "VCG-CLAUSE-entropy": 0.0,
+        "UNARY": 0.0,
+        "BINARY+": 0.0,
+        "TRINARY+": 0.0,
+        "Basic-featuretime": 0.0,
+        "VCG-VAR-mean": 0.0,
+        "VCG-VAR-coeff-variation": 0.0,
+        "VCG-VAR-min": 0.0,
+        "VCG-VAR-max": 0.0,
+        "VCG-VAR-entropy": 0.0,
+        "POSNEG-RATIO-VAR-mean": 0.0,
+        "POSNEG-RATIO-VAR-stdev": 0.0,
+        "POSNEG-RATIO-VAR-min": 0.0,
+        "POSNEG-RATIO-VAR-max": 0.0,
+        "POSNEG-RATIO-VAR-entropy": 0.0,
+        "HORNY-VAR-mean": 0.0,
+        "HORNY-VAR-coeff-variation": 0.0,
+        "HORNY-VAR-min": 0.0,
+        "HORNY-VAR-max": 0.0,
+        "HORNY-VAR-entropy": 0.0,
+        "horn-clauses-fraction": 0.0,
+        "VG-mean": 0.0,
+        "VG-coeff-variation": 0.0,
+        "VG-min": 0.0,
+        "VG-max": 0.0,
+        "KLB-featuretime": 0.0,
+        "CG-mean": 0.0,
+        "CG-coeff-variation": 0.0,
+        "CG-min": 0.0,
+        "CG-max": 0.0,
+        "CG-entropy": 0.0,
+        "cluster-coeff-mean": 0.0,
+        "cluster-coeff-coeff-variation": 0.0,
+        "cluster-coeff-min": 0.0,
+        "cluster-coeff-max": 0.0,
+        "cluster-coeff-entropy": 0.0,
+        "CG-featuretime": 0.0,
+    }
 
     def __init__(
         self,
@@ -56,9 +113,34 @@ class SAT_Instance(Instance):
         instance.features = dict_
         return instance
 
+    def _calculate_ubc_features(self) -> dict:
+        try:
+            logger.debug(f"[{self}] starting...")
+            result = subprocess.run(
+                [UBC_SAT_FEATURE_PATH, "-base", self.filepath],
+                capture_output=True,
+                text=True,
+            )
+            logger.debug(f"[{self}] result={result}")
+            output = result.stdout.strip().splitlines()
+            for line in output:
+                logger.debug(f"[{self}] {line}")
+
+            header = output[0].split(",")
+            values = output[1].split(",")
+
+            feature_dict = {header[i]: float(values[i]) for i in range(len(header))}
+            return feature_dict
+        except Exception as e:
+            logger.error(f"[{self}] error calculating UBC features: {e}")
+            return {}
+
     @classmethod
     def _calculate_features(cls, instance: "Instance") -> ResultWithTime:
-        return ResultWithTime({}, 0.0)
+        with Timer() as timer:
+            ubc_features = instance._calculate_ubc_features()
+            features = {**instance.FEATURES, **ubc_features}
+        return ResultWithTime(features, timer.elapsed_time)
 
 
 def SAT_from_index_file(
