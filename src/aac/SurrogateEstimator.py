@@ -49,7 +49,7 @@ class Estimator1(SurrogateEstimator):
         min_samples_leaf=0.03,
         min_samples_split=0.05,
         random_state=SEED,
-        n_jobs=MAX_WORKERS,
+        n_jobs=1,
     )
 
     _DEFAULT_REGRESSOR = RandomForestRegressor(
@@ -59,7 +59,7 @@ class Estimator1(SurrogateEstimator):
         min_samples_leaf=0.03,
         min_samples_split=0.05,
         random_state=SEED,
-        n_jobs=MAX_WORKERS,
+        n_jobs=1,
     )
 
     def __init__(
