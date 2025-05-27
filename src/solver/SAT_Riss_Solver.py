@@ -38,6 +38,11 @@ class SAT_Riss_Solver(Solver):
             time = instance.max_time
             cost = instance.max_cost
             error = True
+        except Exception as e:
+            print(f"Error running {solver=} on {instance=}: {e}")
+            time = instance.max_time
+            cost = instance.max_cost
+            error = True
         time += features_time
         return Solver.Result(prefix, solver, instance, cost, time, error=error)
 
