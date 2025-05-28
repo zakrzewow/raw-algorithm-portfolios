@@ -41,7 +41,7 @@ if __name__ == "__main__":
         if aac.iter >= 37 and aac.iter - last_model_iter >= 5:
             X, y = get_model_training_data(db)
             estimator = Estimator1(max_cost=100.0, estimator_pct=ESTIMATOR_PCT)
-            estimator.fsit(X, y)
+            estimator.fit(X, y)
             estimator.log()
             last_model_iter = aac.iter
             aac.update(estimator=estimator)
