@@ -1,5 +1,3 @@
-import copy
-
 import cocoex
 import numpy as np
 
@@ -12,17 +10,20 @@ class BBOB_Instance(Instance):
 
     def __init__(
         self,
-        problem: cocoex.interface.Problem,
+        function_index: int,
+        dimension: int,
+        instance_index: int,
         cut_off_cost: float = 0,
         cut_off_time: float = 0,
     ):
         super().__init__()
-        self.problem = copy.deepcopy(problem)
+        self._suite_options = f"function_indices:{function_index} dimensions:{dimension} instance_indices:{instance_index}"
+        self._suite = cocoex.Suite("bbob", "", self._suite_options)
         self.cut_off_cost = cut_off_cost
         self.cut_off_time = cut_off_time
 
     def __repr__(self):
-        str_ = f"BBOB_Instance(id={self.problem.id})"
+        str_ = f"BBOB_Instance(id={self._suite_options})"
         return str_
 
     @classmethod
@@ -34,9 +35,8 @@ class BBOB_Instance(Instance):
             **self.features,
         }
 
-    @property
-    def dimension(self) -> int:
-        return self.problem.dimension
+    def get_problem(self) -> cocoex.Problem:
+        return self._suite[0]
 
     @classmethod
     def _calculate_features(cls, instance: "Instance") -> ResultWithTime:
@@ -51,12 +51,13 @@ class BBOB_Instance(Instance):
         x_range = np.linspace(-5, 5, 100)
         y_range = np.linspace(-5, 5, 100)
         X, Y = np.meshgrid(x_range, y_range)
+        problem = self.get_problem()
 
         Z = np.zeros_like(X)
         for i in range(X.shape[0]):
             for j in range(X.shape[1]):
                 point = [X[i, j], Y[i, j]]
-                Z[i, j] = self.problem(point)
+                Z[i, j] = problem(point)
 
         fig, ax = plt.subplots(figsize=(8, 6), subplot_kw={"projection": "3d"})
         surf = ax.plot_surface(X, Y, Z, cmap="viridis", alpha=0.8)
