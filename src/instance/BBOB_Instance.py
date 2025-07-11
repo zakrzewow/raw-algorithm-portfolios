@@ -17,13 +17,14 @@ class BBOB_Instance(Instance):
         cut_off_time: float = 0,
     ):
         super().__init__()
+        self._id = f"bbob_f{function_index:03d}_i{instance_index:02d}_d{dimension:02d}"
         self._suite_options = f"function_indices:{function_index} dimensions:{dimension} instance_indices:{instance_index}"
         self._suite = cocoex.Suite("bbob", "", self._suite_options)
         self.cut_off_cost = cut_off_cost
         self.cut_off_time = cut_off_time
 
     def __repr__(self):
-        str_ = f"BBOB_Instance(id={self._suite_options})"
+        str_ = f"BBOB_Instance(problem_id={self._id})"
         return str_
 
     @classmethod

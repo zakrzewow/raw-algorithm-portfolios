@@ -1,10 +1,15 @@
+import time
+import warnings
+
 import nevergrad as ng
 from ConfigSpace import Configuration
+from nevergrad.common.errors import NevergradRuntimeWarning
 
 from src.configuration_space.POP import CONFIGURATION_SPACE
-from src.instance import BBOB_Instance
+from src.instance.BBOB_Instance import BBOB_Instance
 from src.solver.Solver import Solver
-from src.utils import Timer
+
+warnings.filterwarnings("ignore", category=NevergradRuntimeWarning)
 
 
 class BBOB_POP_Solver(Solver):
@@ -47,26 +52,35 @@ class BBOB_POP_Solver(Solver):
         else:
             raise ValueError(f"Unknown algorithm: {algorithm}")
 
-        optimizer = optimizer_class(parametrization=problem.dimension, budget=1e6)
+        optimizer = optimizer_class(parametrization=problem.dimension, budget=100000)
 
-        with Timer() as timer:
-            try:
-                _ = optimizer.minimize(
-                    problem,
-                    max_time=instance.cut_off_time,
-                )
-            except Exception:
-                error = True
-                time = instance.cut_off_time
-                cost = instance.cut_off_cost
+        start_time = time.time()
+        try:
+            for _ in range(optimizer.budget):
+                x = optimizer.ask()
+                value = problem(*x.args, **x.kwargs)
+                optimizer.tell(x, value)
+
+                end_time = time.time()
+                elapsed_time = end_time - start_time
+
+                if problem.final_target_hit or elapsed_time >= instance.cut_off_time:
+                    break
+        except Exception:
+            error = True
+            time_ = instance.cut_off_time
+            cost = instance.cut_off_cost
 
         error = False
         if not problem.final_target_hit:
-            time = instance.cut_off_time
+            time_ = instance.cut_off_time
             cost = instance.cut_off_cost
         else:
-            time = timer.elapsed_time
-            cost = time if time < instance.cut_off_time else instance.cut_off_cost
-
-        time += features_time
-        return Solver.Result(prefix, solver, instance, cost, time, error=error)
+            time_ = elapsed_time
+            if time_ < instance.cut_off_time:
+                cost = time_
+            else:
+                time_ = instance.cut_off_time
+                cost = instance.cut_off_cost
+        time_ += features_time
+        return Solver.Result(prefix, solver, instance, cost, time_, error=error)
