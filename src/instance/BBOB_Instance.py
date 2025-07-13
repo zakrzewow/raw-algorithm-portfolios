@@ -8,8 +8,8 @@ from src.database import DB
 from src.instance.Instance import Instance
 from src.utils import ResultWithTime
 
-# with open(DATA_DIR / "BBOB" / "features.json", "r") as f:
-#     FEATURES = json.load(f)
+with open(DATA_DIR / "BBOB" / "features.json", "r") as f:
+    FEATURES = json.load(f)
 
 
 class BBOB_Instance(Instance):
@@ -123,64 +123,64 @@ class BBOB_Instance(Instance):
 
     @classmethod
     def _calculate_features(cls, instance: "Instance", repeat=50) -> ResultWithTime:
-        import warnings
+        # import warnings
 
-        warnings.filterwarnings("ignore", category=RuntimeWarning)
-        import pandas as pd
-        from pflacco.classical_ela_features import (
-            calculate_dispersion,
-            calculate_ela_distribution,
-            calculate_ela_level,
-            calculate_ela_meta,
-            calculate_information_content,
-            calculate_nbc,
-            calculate_pca,
-        )
-        from pflacco.sampling import create_initial_sample
+        # warnings.filterwarnings("ignore", category=RuntimeWarning)
+        # import pandas as pd
+        # from pflacco.classical_ela_features import (
+        #     calculate_dispersion,
+        #     calculate_ela_distribution,
+        #     calculate_ela_level,
+        #     calculate_ela_meta,
+        #     calculate_information_content,
+        #     calculate_nbc,
+        #     calculate_pca,
+        # )
+        # from pflacco.sampling import create_initial_sample
 
-        from src.utils import ResultWithTime, Timer
+        # from src.utils import ResultWithTime, Timer
 
-        problem = instance.get_problem()
-        with Timer() as timer:
-            records = []
-            for seed in range(repeat):
-                X = create_initial_sample(
-                    problem.dimension,
-                    n=min(1000, problem.dimension * 50),
-                    lower_bound=-5,
-                    upper_bound=5,
-                    seed=seed,
-                )
-                y = X.apply(lambda x: problem(x), axis=1)
+        # problem = instance.get_problem()
+        # with Timer() as timer:
+        #     records = []
+        #     for seed in range(repeat):
+        #         X = create_initial_sample(
+        #             problem.dimension,
+        #             n=min(1000, problem.dimension * 50),
+        #             lower_bound=-5,
+        #             upper_bound=5,
+        #             seed=seed,
+        #         )
+        #         y = X.apply(lambda x: problem(x), axis=1)
 
-                ela_distr = calculate_ela_distribution(X, y)
-                ela_level = calculate_ela_level(X, y)
-                ela_meta = calculate_ela_meta(X, y)
-                ela_disp = calculate_dispersion(X, y)
-                ela_nbc = calculate_nbc(X, y)
-                ela_pca = calculate_pca(X, y)
-                ela_ic = calculate_information_content(X, y, seed=seed)
+        #         ela_distr = calculate_ela_distribution(X, y)
+        #         ela_level = calculate_ela_level(X, y)
+        #         ela_meta = calculate_ela_meta(X, y)
+        #         ela_disp = calculate_dispersion(X, y)
+        #         ela_nbc = calculate_nbc(X, y)
+        #         ela_pca = calculate_pca(X, y)
+        #         ela_ic = calculate_information_content(X, y, seed=seed)
 
-                records.append(
-                    {
-                        **ela_distr,
-                        **ela_level,
-                        **ela_meta,
-                        **ela_disp,
-                        **ela_nbc,
-                        **ela_pca,
-                        **ela_ic,
-                    }
-                )
+        #         records.append(
+        #             {
+        #                 **ela_distr,
+        #                 **ela_level,
+        #                 **ela_meta,
+        #                 **ela_disp,
+        #                 **ela_nbc,
+        #                 **ela_pca,
+        #                 **ela_ic,
+        #             }
+        #         )
 
-        result = pd.DataFrame(records).median().round(6).to_dict()
-        result = {k.replace(".", "_"): v for k, v in result.items()}
-        time = round(timer.elapsed_time / repeat, 6)
-        return ResultWithTime(result, time)
-        # dict_ = FEATURES.get(instance.id(), {})
-        # result = dict_.get("result", {})
-        # time = dict_.get("time", 0.0)
+        # result = pd.DataFrame(records).median().round(6).to_dict()
+        # result = {k.replace(".", "_"): v for k, v in result.items()}
+        # time = round(timer.elapsed_time / repeat, 6)
         # return ResultWithTime(result, time)
+        dict_ = FEATURES.get(instance.id(), {})
+        result = dict_.get("result", {})
+        time = dict_.get("time", 0.0)
+        return ResultWithTime(result, time)
 
     def plot(self, fname: str = None):
         import matplotlib.pyplot as plt
