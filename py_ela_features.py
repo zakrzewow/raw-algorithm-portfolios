@@ -12,7 +12,7 @@ if __name__ == "__main__":
     features = {}
     futures = []
 
-    executor = concurrent.futures.ProcessPoolExecutor(max_workers=2)
+    executor = concurrent.futures.ProcessPoolExecutor(max_workers=20)
 
     for function_index in function_index_list:
         for dimension in dimension_list:
