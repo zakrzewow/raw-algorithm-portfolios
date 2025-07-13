@@ -123,3 +123,7 @@ class DB:
     def get_results(self) -> pd.DataFrame:
         query = f"SELECT * FROM {self.SCHEMA.RESULTS}"
         return self.query2df(query)
+
+    def get_evaluations(self) -> pd.DataFrame:
+        query = f"SELECT * FROM {self.SCHEMA.EVALUATIONS}"
+        return self.query2df(query)
