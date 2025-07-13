@@ -1,29 +1,30 @@
 import concurrent.futures
 import json
+import os
 
+from src.constant import MAX_WORKERS
 from src.instance.BBOB_Instance import BBOB_Instance
 from src.log import logger
 
 if __name__ == "__main__":
-    function_index_list = list(range(1, 25))
+    function_index = int(os.environ.get("FUNCTION_INDEX").strip())
     dimension_list = [2, 3, 5, 10, 20]
-    instance_index_list = list(range(1, 11))
+    instance_index_list = [1, 2, 3, 4, 5]
 
     features = {}
     futures = []
 
-    executor = concurrent.futures.ProcessPoolExecutor(max_workers=20)
+    executor = concurrent.futures.ProcessPoolExecutor(max_workers=MAX_WORKERS)
 
-    for function_index in function_index_list:
-        for dimension in dimension_list:
-            for instance_index in instance_index_list:
-                instance = BBOB_Instance(
-                    function_index=function_index,
-                    dimension=dimension,
-                    instance_index=instance_index,
-                )
-                future = executor.submit(instance._calculate_features, instance)
-                futures.append((instance, future))
+    for dimension in dimension_list:
+        for instance_index in instance_index_list:
+            instance = BBOB_Instance(
+                function_index=function_index,
+                dimension=dimension,
+                instance_index=instance_index,
+            )
+            future = executor.submit(instance._calculate_features, instance)
+            futures.append((instance, future))
 
     for instance, future in futures:
         try:
@@ -35,7 +36,7 @@ if __name__ == "__main__":
         except Exception as e:
             logger.error(f"Error calculating features for instance {instance}: {e}")
 
-    with open("features.json", "w") as f:
+    with open(f"features_{function_index}.json", "w") as f:
         json.dump(features, f, indent=4)
 
     executor.shutdown(wait=False, cancel_futures=True)

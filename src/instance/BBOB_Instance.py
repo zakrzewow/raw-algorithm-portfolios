@@ -122,7 +122,7 @@ class BBOB_Instance(Instance):
         return _suite[0]
 
     @classmethod
-    def _calculate_features(cls, instance: "Instance", repeat=100) -> ResultWithTime:
+    def _calculate_features(cls, instance: "Instance", repeat=50) -> ResultWithTime:
         import warnings
 
         warnings.filterwarnings("ignore", category=RuntimeWarning)
@@ -146,6 +146,7 @@ class BBOB_Instance(Instance):
             for seed in range(repeat):
                 X = create_initial_sample(
                     problem.dimension,
+                    n=min(1000, problem.dimension * 50),
                     lower_bound=-5,
                     upper_bound=5,
                     seed=seed,

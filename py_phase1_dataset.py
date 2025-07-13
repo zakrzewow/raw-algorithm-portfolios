@@ -1,19 +1,27 @@
 import os
 
-from src.constant import DATA_DIR
-from src.instance.TSP_Instance import TSP_from_index_file
+from src.instance.BBOB_Instance import BBOB_Instance
+from src.instance.InstanceList import InstanceList
+from src.solver.BBOB_POP_Solver import BBOB_POP_Solver
 from src.solver.Portfolio import Portfolio
-from src.solver.TSP_LKH_Solver import TSP_LKH_Solver
 
 if __name__ == "__main__":
-    instances = TSP_from_index_file(
-        filepath=DATA_DIR / "TSP" / "TRAIN" / "index.json",
-        cut_off_cost=3000.0,
-        cut_off_time=300.0,
-    )
-    instances = instances[i : i + 20]
+    function_index = int(os.environ.get("FUNCTION_INDEX").strip())
 
-    portfolio = Portfolio.from_solver_class(TSP_LKH_Solver, size=1000)
+    dimension_list = [2, 3, 5, 10, 20]
+    instances = InstanceList()
+
+    for dimension in dimension_list:
+        instance = BBOB_Instance(
+            function_index=function_index,
+            dimension=dimension,
+            instance_index=1,
+            cut_off_cost=3000.0,
+            cut_off_time=300.0,
+        )
+        instances.append(instance)
+
+    portfolio = Portfolio.from_solver_class(BBOB_POP_Solver, size=1000)
     portfolio.evaluate(
         instance_list=instances,
         prefix="dataset",
