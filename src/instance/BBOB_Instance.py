@@ -4,6 +4,7 @@ import cocoex
 import numpy as np
 
 from src.constant import DATA_DIR
+from src.database import DB
 from src.instance.Instance import Instance
 from src.utils import ResultWithTime
 
@@ -86,6 +87,9 @@ class BBOB_Instance(Instance):
         cut_off_time: float = 0,
     ):
         super().__init__()
+        self._function_index = function_index
+        self._dimension = dimension
+        self._instance_index = instance_index
         self._id = f"bbob_f{function_index:03d}_i{instance_index:02d}_d{dimension:02d}"
         self._suite_options = f"function_indices:{function_index} dimensions:{dimension} instance_indices:{instance_index}"
         self.cut_off_cost = cut_off_cost
@@ -97,10 +101,19 @@ class BBOB_Instance(Instance):
 
     @classmethod
     def from_db(cls, id_: str) -> "BBOB_Instance":
-        raise NotImplementedError()
+        dict_ = DB().select_id(DB.SCHEMA.INSTANCES, id_)
+        function_index = dict_.pop("function_index")
+        dimension = dict_.pop("dimension")
+        instance_index = dict_.pop("instance_index")
+        instance = cls(function_index, dimension, instance_index)
+        instance.features = dict_
+        return instance
 
     def to_dict(self) -> dict:
         return {
+            "function_index": self._function_index,
+            "dimension": self._dimension,
+            "instance_index": self._instance_index,
             **self.features,
         }
 

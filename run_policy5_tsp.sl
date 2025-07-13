@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=run-policy
+#SBATCH --job-name=run-policy-tsp
 #SBATCH --account=mandziuk-lab
 #SBATCH --partition=short
 #SBATCH --nodelist=sr-[1-3]
@@ -12,4 +12,4 @@
 #SBATCH --mail-user=01161643@pw.edu.pl
 #SBATCH --output=/home2/faculty/gzakrzewski/raw-algorithm-portfolios/log/%x-%j.log
 
-srun /home2/faculty/gzakrzewski/miniconda3/envs/SMAC/bin/python /home2/faculty/gzakrzewski/raw-algorithm-portfolios/py_policy.py
+srun /home2/faculty/gzakrzewski/miniconda3/envs/SMAC/bin/python /home2/faculty/gzakrzewski/raw-algorithm-portfolios/py_policy_tsp.py

@@ -17,7 +17,17 @@ def get_model_training_data(db: DB) -> pd.DataFrame:
     where {db.SCHEMA.RESULTS}.cached = 0 and {db.SCHEMA.RESULTS}.surrogate = 0
     """
     df = db.query2df(query)
-    df = df.drop(columns=["id", "filepath", "optimum"])
+    df = df.drop(
+        columns=[
+            "id",
+            "filepath",
+            "optimum",
+            "function_index",
+            "dimension",
+            "instance_index",
+        ],
+        errors="ignore",
+    )
     df = df.dropna()
     y = df["cost"].to_numpy()
     cut_off = df["cut_off_time"].to_numpy()
