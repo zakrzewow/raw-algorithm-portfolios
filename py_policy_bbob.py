@@ -1,8 +1,8 @@
 import os
 
-from src.constant import DATA_DIR, N_TRAIN, PARG, POLICY, SEED
-from src.experiment import parhydra_tsp
-from src.instance.TSP_Instance import TSP_from_index_file, set_n22_cut_off_time
+from src.constant import N_TRAIN, PARG, POLICY, SEED
+from src.experiment import parhydra_bbob
+from src.instance.BBOB_Instance import BBOB_test, BBOB_train, set_08_cut_off_time
 from src.log import logger
 from src.surrogate.SurrogatePolicy import (
     EmptySurrogatePolicy,
@@ -15,21 +15,12 @@ from src.surrogate.SurrogatePolicy import (
 
 if __name__ == "__main__":
     logger.info(f"{POLICY=}, {PARG=}, {N_TRAIN=}, {SEED=}")
-    train_instances = TSP_from_index_file(
-        filepath=DATA_DIR / "TSP" / "TRAIN" / "index.json",
-        cut_off_cost=100,
-        cut_off_time=10,
+    train_instances = BBOB_train(
         n=N_TRAIN,
         seed=SEED,
     )
-    test_instances = TSP_from_index_file(
-        filepath=DATA_DIR / "TSP" / "TEST" / "index.json",
-        cut_off_cost=1000,
-        cut_off_time=100,
-        n=250,
-        seed=0,
-    )
-    train_instances = set_n22_cut_off_time(train_instances, reference_cut_off_time=10.0)
+    test_instances = BBOB_test()
+    train_instances = set_08_cut_off_time(train_instances)
 
     POLICY_KWARGS = {
         "first_fit_solver_count": 5,
@@ -54,7 +45,7 @@ if __name__ == "__main__":
     ATTEMPTS_N = 4
     MAX_ITER = 25
 
-    portfolio = parhydra_tsp(
+    portfolio = parhydra_bbob(
         train_instances=train_instances,
         surrogate_policy=surrogate_policy,
         SOLVERS_N=SOLVERS_N,

@@ -1,1 +1,1 @@
-from .parhydra import parhydra
+from .parhydra_tsp import parhydra_tsp

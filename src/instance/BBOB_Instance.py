@@ -6,6 +6,7 @@ import numpy as np
 from src.constant import DATA_DIR
 from src.database import DB
 from src.instance.Instance import Instance
+from src.instance.InstanceList import InstanceList
 from src.utils import ResultWithTime
 
 with open(DATA_DIR / "BBOB" / "features.json", "r") as f:
@@ -87,9 +88,9 @@ class BBOB_Instance(Instance):
         cut_off_time: float = 0,
     ):
         super().__init__()
-        self._function_index = function_index
-        self._dimension = dimension
-        self._instance_index = instance_index
+        self.function_index = function_index
+        self.dimension = dimension
+        self.instance_index = instance_index
         self._id = f"bbob_f{function_index:03d}_i{instance_index:02d}_d{dimension:02d}"
         self._suite_options = f"function_indices:{function_index} dimensions:{dimension} instance_indices:{instance_index}"
         self.cut_off_cost = cut_off_cost
@@ -111,9 +112,9 @@ class BBOB_Instance(Instance):
 
     def to_dict(self) -> dict:
         return {
-            "function_index": self._function_index,
-            "dimension": self._dimension,
-            "instance_index": self._instance_index,
+            "function_index": self.function_index,
+            "dimension": self.dimension,
+            "instance_index": self.instance_index,
             **self.features,
         }
 
@@ -212,65 +213,67 @@ class BBOB_Instance(Instance):
             plt.show()
 
 
-# def TSP_from_index_file(
-#     filepath: Path,
-#     cut_off_cost: float = 0.0,
-#     cut_off_time: float = 0.0,
-#     n: int = None,
-#     seed: int = 0,
-# ) -> InstanceList:
-#     instances = InstanceList()
+def BBOB_test() -> InstanceList:
+    function_index_list = list(range(1, 25))
+    dimension_list = [2, 3, 5, 10, 20]
+    instance_index_list = [1, 2]
+    instance_list = InstanceList()
 
-#     with open(filepath) as f:
-#         index = json.load(f)
-
-#     for k, v in index.items():
-#         filepath = DATA_DIR / Path(k)
-#         instance = BBOB_Instance(filepath, v, cut_off_cost, cut_off_time)
-#         instances.append(instance)
-
-#     if n is not None:
-#         rng = np.random.default_rng(seed=seed)
-#         tsp_generators = set([instance.tsp_generator for instance in instances])
-#         n_generators = len(tsp_generators)
-
-#         if n % n_generators != 0:
-#             raise ValueError(f"{n=} must be divisible by the number of {n_generators=}")
-
-#         generators_dict = {}
-#         for instance in instances:
-#             generator = instance.tsp_generator
-#             if generator not in generators_dict:
-#                 generators_dict[generator] = []
-#             generators_dict[generator].append(instance)
-
-#         samples_per_generator = n // n_generators
-
-#         new_instances = InstanceList()
-#         for generator, generator_instances in generators_dict.items():
-#             if len(generator_instances) < samples_per_generator:
-#                 raise ValueError(
-#                     f"Not enough instances for generator {generator}. Needed {samples_per_generator}, but only have {len(generator_instances)}"
-#                 )
-#             selected_instances = rng.choice(
-#                 generator_instances,
-#                 size=samples_per_generator,
-#                 replace=False,
-#             )
-#             new_instances.extend(selected_instances)
-
-#         instances = new_instances
-
-#     return instances
+    for function_index in function_index_list:
+        for dimension in dimension_list:
+            for instance_index in instance_index_list:
+                instance = BBOB_Instance(
+                    function_index=function_index,
+                    dimension=dimension,
+                    instance_index=instance_index,
+                )
+                instance.cut_off_time = 100.0
+                instance.cut_off_cost = 10 * instance.cut_off_time
+                instance_list.append(instance)
+    return instance_list
 
 
-# def set_n22_cut_off_time(
-#     instances: InstanceList,
-#     reference_cut_off_time: float = 10.0,
-# ):
-#     for instance in instances:
-#         instance.cut_off_time = round(
-#             reference_cut_off_time * ((instance.n_cities / 600) ** 2.2), 2
-#         )
-#         instance.cut_off_cost = 10 * instance.cut_off_time
-#     return instances
+def BBOB_train(
+    n: int = None,
+    seed: int = 0,
+) -> InstanceList:
+    rng = np.random.default_rng(seed=seed)
+    function_index_list = list(range(1, 25))
+    dimension_list = [2, 3, 5, 10, 20]
+    instance_index_list = [3, 4, 5]
+    n_per_dimension = n // len(dimension_list)
+    instance_list = InstanceList()
+
+    for dimension in dimension_list:
+        sampled_pairs = rng.choice(
+            len(function_index_list) * len(instance_index_list),
+            size=n_per_dimension,
+            replace=False,
+        )
+
+        for idx in sampled_pairs:
+            function_idx = function_index_list[idx // len(instance_index_list)]
+            instance_idx = instance_index_list[idx % len(instance_index_list)]
+
+            bbob_instance = BBOB_Instance(
+                function_index=function_idx,
+                dimension=dimension,
+                instance_index=instance_idx,
+            )
+            instance_list.append(bbob_instance)
+    return instance_list
+
+
+def set_08_cut_off_time(instance_list: InstanceList):
+    dimension_to_cut_off_time = {
+        2: 0.50,
+        3: 1.05,
+        5: 2.25,
+        10: 6.65,
+        20: 20.0,
+    }
+
+    for instance in instance_list:
+        instance.cut_off_time = dimension_to_cut_off_time.get(instance.dimension, 20.0)
+        instance.cut_off_cost = 10 * instance.cut_off_time
+    return instance_list

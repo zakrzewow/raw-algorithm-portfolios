@@ -1,13 +1,13 @@
 import numpy as np
 
 from src.aac.AAC import AAC
-from src.instance.TSP_Instance import set_n22_cut_off_time
+from src.instance.BBOB_Instance import set_08_cut_off_time
 from src.log import logger
+from src.solver.BBOB_POP_Solver import BBOB_POP_Solver
 from src.solver.Portfolio import Portfolio
-from src.solver.TSP_LKH_Solver import TSP_LKH_Solver
 
 
-def parhydra(
+def parhydra_bbob(
     train_instances,
     surrogate_policy,
     SOLVERS_N,
@@ -30,7 +30,7 @@ def parhydra(
             if largest_marginal_contribution_solver is not None:
                 new_solver = largest_marginal_contribution_solver.copy()
             else:
-                new_solver = TSP_LKH_Solver()
+                new_solver = BBOB_POP_Solver()
 
             iteration_solvers = solvers + [new_solver]
 
@@ -45,7 +45,7 @@ def parhydra(
                 surrogate_policy=surrogate_policy,
             )
             portfolio = aac.configure()
-            set_n22_cut_off_time(train_instances, reference_cut_off_time=10.0)
+            set_08_cut_off_time(train_instances)
             result = portfolio.evaluate(
                 instance_list=train_instances,
                 prefix=f"validate;solver={solver_i+1};attempt={attempt_i+1}",
