@@ -30,6 +30,7 @@ def evaluate_model_with_cross_validation(
             "function_index",
             "dimension",
             "instance_index",
+            "cost",
         ]
 
         df_train = df.loc[train_idx]
