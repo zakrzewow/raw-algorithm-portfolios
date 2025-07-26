@@ -186,8 +186,6 @@ class BBOB_Instance(Instance):
     def plot(self, fname: str = None):
         import matplotlib.pyplot as plt
 
-        fig, ax = plt.subplots(figsize=(6, 6))
-
         x_range = np.linspace(-5, 5, 100)
         y_range = np.linspace(-5, 5, 100)
         X, Y = np.meshgrid(x_range, y_range)
